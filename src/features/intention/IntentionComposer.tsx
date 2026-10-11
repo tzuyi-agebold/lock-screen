@@ -166,7 +166,11 @@ export function IntentionComposer() {
               placeholderTextColor={colors.tertiaryLabel}
               selectionColor={colors.label}
               cursorColor={colors.label}
-              style={[styles.input, { color: colors.label }]}
+              style={[
+                styles.input,
+                { color: colors.label },
+                Platform.OS === 'web' && styles.webInput,
+              ]}
               multiline
               maxLength={INTENTION_MAX_LENGTH}
               returnKeyType="done"
@@ -259,6 +263,10 @@ const styles = StyleSheet.create({
     minHeight: 84,
     textAlignVertical: 'top',
     padding: 0,
+  },
+  // Browsers draw a focus box around text fields; iOS shows only the caret.
+  webInput: {
+    outlineWidth: 0,
   },
   inputFooter: {
     flexDirection: 'row',
