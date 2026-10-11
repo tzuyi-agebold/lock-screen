@@ -2,19 +2,26 @@
   "version": "2.0.0",
   "tasks": [
     {
-      "label": "Expo: Start",
-      "detail": "Dev server. Scan the QR code with your iPhone camera (Expo Go), or press w for the browser.",
+      "label": "iOS Simulator: build and run",
+      "detail": "Compiles the native app and opens it in the iOS Simulator (Mac with Xcode).",
       "type": "npm",
-      "script": "start",
-      "isBackground": true,
+      "script": "ios",
       "problemMatcher": [],
       "group": { "kind": "build", "isDefault": true }
     },
     {
-      "label": "Expo: Start (tunnel)",
-      "detail": "Use when your phone and computer aren't on the same network.",
-      "type": "shell",
-      "command": "npx expo start --tunnel",
+      "label": "Dev server (development build)",
+      "detail": "Serves code to the installed development build. Press w for the browser preview.",
+      "type": "npm",
+      "script": "start",
+      "isBackground": true,
+      "problemMatcher": []
+    },
+    {
+      "label": "Dev server (Expo Go)",
+      "detail": "Scan the QR code with your iPhone camera to open the app in Expo Go.",
+      "type": "npm",
+      "script": "start:go",
       "isBackground": true,
       "problemMatcher": []
     },

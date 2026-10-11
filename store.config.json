@@ -1,0 +1,49 @@
+{
+  "configVersion": 0,
+  "apple": {
+    "categories": ["PRODUCTIVITY", "HEALTH_AND_FITNESS"],
+    "advisory": {
+      "alcoholTobaccoOrDrugUseOrReferences": "NONE",
+      "contests": "NONE",
+      "gamblingSimulated": "NONE",
+      "horrorOrFearThemes": "NONE",
+      "matureOrSuggestiveThemes": "NONE",
+      "medicalOrTreatmentInformation": "NONE",
+      "profanityOrCrudeHumor": "NONE",
+      "sexualContentGraphicAndNudity": "NONE",
+      "sexualContentOrNudity": "NONE",
+      "violenceCartoonOrFantasy": "NONE",
+      "violenceRealistic": "NONE",
+      "violenceRealisticProlongedGraphicOrSadistic": "NONE",
+      "gambling": false,
+      "unrestrictedWebAccess": false,
+      "kidsAgeBand": null,
+      "ageRatingOverride": "NONE",
+      "koreaAgeRatingOverride": "NONE"
+    },
+    "info": {
+      "en-US": {
+        "title": "Intention",
+        "subtitle": "Unlock your phone on purpose",
+        "promoText": "Name what you came to do, get a gentle nudge if you drift, and stop when time's up.",
+        "description": "Most unlocks start with a purpose and end somewhere else. Intention helps you remember why you picked up your phone.\n\nNAME IT FIRST\nOpen Intention and write, or say, the one thing you came to do.\n\nGENTLE NUDGES\nChoose a reminder every 5, 10 or 15 minutes. If you drift into another app, a notification brings you back to what you came for.\n\nA CLEAR FINISH LINE\nSet an optional limit from 15 minutes to an hour. When time's up, Intention asks whether you got it done, then gives you a minute to put the phone down.\n\nALWAYS IN VIEW\nA small floating reminder keeps your intention visible inside the app. Drag it to any corner or tuck it out of the way.\n\nPRIVATE BY DESIGN\nNo account. No tracking. Your intentions and history stay on your iPhone.",
+        "keywords": [
+          "focus",
+          "screen time",
+          "mindful",
+          "digital wellbeing",
+          "habit",
+          "reminder",
+          "distraction",
+          "attention",
+          "phone break",
+          "timer"
+        ],
+        "releaseNotes": "First release."
+      }
+    },
+    "review": {
+      "notes": "Intention helps people use their phone deliberately. When opened, it asks what the person wants to do, sends the local reminders they choose (every 5, 10 or 15 minutes), and, if they set a time limit, shows a \"Time's up\" screen. No account is required and no data leaves the device.\n\nTo test: open the app, tap Continue, type an intention, choose a reminder interval and a 15-minute limit, then tap Begin. The floating reminder can be dragged, tucked into the screen edge and expanded. Reminder notifications arrive on the chosen interval; the \"I did it\" action ends the session."
+    }
+  }
+}

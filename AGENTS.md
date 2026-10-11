@@ -12,6 +12,7 @@ Check versioned docs before touching an Expo/RN API: https://docs.expo.dev/versi
 
 ```sh
 npx expo install <pkg>   # always: picks SDK-compatible versions
+npm run ios              # native build on the iOS Simulator (needs a Mac with Xcode)
 npm run check            # typecheck + lint + tests: run before declaring work done
 npx expo-doctor          # dependency/config health
 npx expo export --platform web   # catches bundling errors

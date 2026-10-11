@@ -13,27 +13,37 @@ iOS app (not a web wrapper), and the same code ships to TestFlight and the App S
 
 ---
 
-## Preview it (VS Code, no Mac required)
+## Run it
 
-1. **Install once:** [Node.js 22 LTS](https://nodejs.org) and [VS Code](https://code.visualstudio.com).
-   On your iPhone, install **Expo Go** from the App Store.
-2. **Open the folder** in VS Code. Accept the recommended extensions when prompted (Expo Tools,
-   ESLint, Prettier).
-3. **Install dependencies.** In the VS Code terminal (`` Ctrl+` ``):
+### On the iOS Simulator (Mac with Xcode)
+
+```sh
+npm install
+npm run ios        # compiles the app and opens it in the Simulator
+```
+
+After the first build, `npm start` reloads changes instantly. No Mac? `npm run build:simulator`
+builds it in the cloud with EAS. Details in [docs/RELEASE.md](docs/RELEASE.md).
+
+### Quick preview in Expo Go (any computer)
+
+1. Install [Node.js 22 LTS](https://nodejs.org) and [VS Code](https://code.visualstudio.com), and
+   **Expo Go** on your iPhone.
+2. Open the folder in VS Code (accept the recommended extensions), then in the terminal:
    ```sh
    npm install
+   npm run start:go
    ```
-4. **Start the preview:**
-   ```sh
-   npm start
-   ```
-   Or use **Terminal → Run Task… → Expo: Start**.
-5. **On your iPhone**, open the Camera and scan the QR code shown in the terminal. The app
-   opens in Expo Go and reloads instantly every time you save a file.
-   - Phone and computer must be on the same Wi-Fi. If they can't see each other, run
-     `npx expo start --tunnel`.
-6. **In a browser:** press `w` in the terminal. It opens an iPhone-sized preview, which is handy
-   for quick layout checks.
+3. Scan the QR code with your iPhone camera. The app reloads every time you save a file. If the
+   phone can't reach your computer, use `npx expo start --go --tunnel`.
+4. Press `w` in the terminal for an iPhone-sized preview in the browser.
+
+### App Store
+
+Production builds and uploads run in the cloud with EAS (no Mac needed):
+`npm run build:production`, then `npm run submit:ios`. The listing text is in
+[`store.config.json`](store.config.json) and draft screenshots in [`store/`](store). Follow the
+checklist in [docs/RELEASE.md](docs/RELEASE.md).
 
 ### What works where
 
@@ -121,30 +131,18 @@ docs/                     Product spec, App Review notes, roadmap
 
 ## Scripts
 
-| Command             | What it does                                                                            |
-| ------------------- | --------------------------------------------------------------------------------------- |
-| `npm start`         | Start the dev server (QR code for Expo Go; `w` for web, `i` for iOS Simulator on a Mac) |
-| `npm run web`       | Start straight into the browser preview                                                 |
-| `npm test`          | Unit tests (Jest)                                                                       |
-| `npm run typecheck` | TypeScript, strict                                                                      |
-| `npm run lint`      | ESLint (Expo config + Prettier)                                                         |
-| `npm run check`     | All three of the above, as CI runs them                                                 |
+| Command                    | What it does                                                         |
+| -------------------------- | -------------------------------------------------------------------- |
+| `npm run ios`              | Build and run on the iOS Simulator (Mac with Xcode)                  |
+| `npm start`                | Dev server for the development build (`w` opens the browser preview) |
+| `npm run start:go`         | Dev server for Expo Go                                               |
+| `npm run web`              | Start straight into the browser preview                              |
+| `npm run build:simulator`  | Cloud build for the iOS Simulator (EAS)                              |
+| `npm run build:production` | Cloud App Store build (EAS)                                          |
+| `npm run submit:ios`       | Upload the latest App Store build to App Store Connect               |
+| `npm test`                 | Unit tests (Jest)                                                    |
+| `npm run typecheck`        | TypeScript, strict                                                   |
+| `npm run lint`             | ESLint (Expo config + Prettier)                                      |
+| `npm run check`            | All three of the above, as CI runs them                              |
 
 CI (`.github/workflows/ci.yml`) runs typecheck, lint, tests and a web build on every push.
-
----
-
-## Shipping to iPhone (later)
-
-Expo Go is for previewing. To put Intention on the App Store, use EAS Build. It runs in
-the cloud, so you don't need a Mac:
-
-```sh
-npx eas-cli@latest login
-npx eas-cli@latest build --platform ios --profile production
-npx eas-cli@latest submit --platform ios
-```
-
-You'll need an [Apple Developer Program](https://developer.apple.com/programs/) membership.
-See [docs/ROADMAP.md](docs/ROADMAP.md) for the Phase 2 native features and
-[docs/APPLE_REVIEW.md](docs/APPLE_REVIEW.md) before submitting.
