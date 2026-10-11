@@ -26,6 +26,9 @@ npx expo export --platform web   # catches bundling errors
   `src/features/session/sessionController.ts`, never directly from screens.
 - UI uses `src/ui/theme` tokens and `src/ui/components`. No hard-coded colors or font sizes in
   screens. New icons go in `Icon.tsx` (SF Symbol + Material Symbol pair).
+- Design language: black and white only (both appearances). No accent colors, no solid
+  buttons: primary actions use `Button` (glass), secondary ones `variant="quiet"`. Color lives
+  only in `AmbientBackground` (palettes in `src/ui/theme/ambient.ts`).
 - Reanimated shared values: use `.get()` / `.set()` (React Compiler friendly), and respect
   `useReducedMotion()`.
 - Keep Expo Go compatibility for Phase 1: native modules not in Expo Go must be loaded with

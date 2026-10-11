@@ -1,10 +1,8 @@
 import { useRouter } from 'expo-router';
-import { StatusBar } from 'expo-status-bar';
 import { useCallback, useEffect, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import Animated, {
   FadeIn,
-  FadeInDown,
   useAnimatedStyle,
   useReducedMotion,
   useSharedValue,
@@ -21,7 +19,7 @@ import { extendIntention, finishIntention } from '@/features/session/sessionCont
 import { useNow } from '@/hooks/useNow';
 import { useSessionStore } from '@/state/sessionStore';
 import { Button, Icon, Text } from '@/ui/components';
-import { durations, spacing, ThemeScope, useTheme } from '@/ui/theme';
+import { durations, spacing, useTheme } from '@/ui/theme';
 
 /** A short pause before the next intention — the in-app half of the hard lock. */
 export const REST_SECONDS = 60;
@@ -31,16 +29,6 @@ export const REST_SECONDS = 60;
  * other apps are paused too; until then it's an honest, in-app stop sign.
  */
 export default function TimesUp() {
-  // Always dark: a calm, distinct "stop" moment regardless of appearance.
-  return (
-    <ThemeScope scheme="dark">
-      <StatusBar style="light" />
-      <TimesUpContent />
-    </ThemeScope>
-  );
-}
-
-function TimesUpContent() {
   const router = useRouter();
   const { colors } = useTheme();
   const insets = useSafeAreaInsets();
@@ -96,54 +84,41 @@ function TimesUpContent() {
       style={[
         styles.screen,
         {
-          backgroundColor: colors.restBackground,
+          backgroundColor: colors.background,
           paddingTop: insets.top + spacing.huge,
-          paddingBottom: insets.bottom + spacing.lg,
+          paddingBottom: Math.max(insets.bottom, spacing.lg),
         },
       ]}
     >
       {!resting ? (
         <Animated.View key="ask" entering={FadeIn.duration(durations.slow)} style={styles.body}>
           <Animated.View style={iconStyle}>
-            <Icon name="hourglass" size={64} color="label" weight="light" />
+            <Icon name="hourglass" size={40} color="secondaryLabel" weight="ultraLight" />
           </Animated.View>
-          <Text variant="largeTitle" align="center" accessibilityRole="header">
+          <Text variant="micro" color="tertiaryLabel" accessibilityRole="header">
             Time’s up
           </Text>
-          <View style={styles.quote}>
-            <Text variant="subheadline" align="center" color="secondaryLabel">
-              You unlocked to
-            </Text>
-            <Text variant="title2" align="center">
-              “{intention}”
-            </Text>
-          </View>
-          <Text variant="body" align="center" color="secondaryLabel">
+          <Text variant="display" align="center">
+            {intention}
+          </Text>
+          <Text variant="subheadline" align="center" color="secondaryLabel">
             Did you get it done?
           </Text>
         </Animated.View>
       ) : (
-        <Animated.View
-          key="rest"
-          entering={FadeInDown.duration(durations.slow)}
-          style={styles.body}
-        >
-          <Icon name="moon" size={56} color="label" weight="light" />
-          <Text variant="largeTitle" align="center" accessibilityRole="header">
+        <Animated.View key="rest" entering={FadeIn.duration(durations.slow)} style={styles.body}>
+          <Text variant="micro" color="tertiaryLabel" accessibilityRole="header">
             Phone down
           </Text>
-          <Text variant="body" align="center" color="secondaryLabel">
-            Take a breath and look up. Your next intention can wait a minute.
-          </Text>
           <Text
-            variant="largeTitle"
-            rounded
-            tabular
+            variant="numeral"
             align="center"
-            style={styles.timer}
             accessibilityLabel={`${Math.ceil(restLeft / 1000)} seconds`}
           >
             {formatCountdown(restLeft)}
+          </Text>
+          <Text variant="subheadline" align="center" color="secondaryLabel">
+            Look up. Breathe. The next thing can wait a minute.
           </Text>
         </Animated.View>
       )}
@@ -151,25 +126,31 @@ function TimesUpContent() {
       <View style={styles.actions}>
         {!resting ? (
           <>
-            <Button title="Yes, I did it" icon="check" onPress={() => finish('completed')} />
-            <Button title="Not this time" variant="gray" onPress={() => finish('timedOut')} />
-            {active && canExtend(active) ? (
+            <Button title="Yes, done" onPress={() => finish('completed')} />
+            <View style={styles.secondary}>
               <Button
-                title={`${EXTENSION_MINUTES} more minutes`}
-                variant="plain"
+                title="Not this time"
+                variant="quiet"
                 size="medium"
-                onPress={() => {
-                  extendIntention();
-                  leave();
-                }}
-                accessibilityHint="Extends the time limit once."
+                onPress={() => finish('timedOut')}
               />
-            ) : null}
+              {active && canExtend(active) ? (
+                <Button
+                  title={`${EXTENSION_MINUTES} more min`}
+                  variant="quiet"
+                  size="medium"
+                  onPress={() => {
+                    extendIntention();
+                    leave();
+                  }}
+                  accessibilityHint="Extends the time limit once."
+                />
+              ) : null}
+            </View>
           </>
         ) : (
           <Button
-            title={restLeft > 0 ? 'Resting…' : 'Set a new intention'}
-            icon={restLeft > 0 ? 'leaf' : 'target'}
+            title={restLeft > 0 ? 'Resting' : 'New intention'}
             disabled={restLeft > 0}
             onPress={leave}
           />
@@ -191,16 +172,11 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     gap: spacing.lg,
   },
-  quote: {
-    gap: spacing.xs,
-    marginVertical: spacing.sm,
-  },
-  timer: {
-    fontSize: 56,
-    lineHeight: 64,
-    marginTop: spacing.lg,
-  },
   actions: {
-    gap: spacing.md,
+    gap: spacing.xs,
+  },
+  secondary: {
+    flexDirection: 'row',
+    justifyContent: 'center',
   },
 });

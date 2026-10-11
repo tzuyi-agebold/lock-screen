@@ -1,56 +1,56 @@
-import { BlurView } from 'expo-blur';
 import { GlassView, isLiquidGlassAvailable } from 'expo-glass-effect';
 import type { ReactNode } from 'react';
 import { Platform, StyleSheet, View, type StyleProp, type ViewStyle } from 'react-native';
 
 import { useTheme } from '../theme';
+import { GlassFill } from './GlassFill';
 
 const liquidGlass = Platform.OS === 'ios' && isLiquidGlassAvailable();
 
 export interface GlassSurfaceProps {
   style?: StyleProp<ViewStyle>;
+  /** Corner radius of the surface (needed to clip the glass layers). */
+  borderRadius: number;
   children?: ReactNode;
   /** Liquid Glass reacts to touch on iOS 26+. */
   interactive?: boolean;
 }
 
 /**
- * Floating chrome material: Liquid Glass on iOS 26+, a system blur material on older iOS
- * and the web, and a translucent fill elsewhere.
+ * Floating chrome (the intention pill): Liquid Glass on iOS 26+, otherwise the app's
+ * monochrome glass material.
  */
-export function GlassSurface({ style, children, interactive = false }: GlassSurfaceProps) {
-  const { dark, colors } = useTheme();
+export function GlassSurface({
+  style,
+  borderRadius,
+  children,
+  interactive = false,
+}: GlassSurfaceProps) {
+  const { dark } = useTheme();
 
   if (liquidGlass) {
     return (
-      <GlassView style={style} glassEffectStyle="regular" isInteractive={interactive}>
+      <GlassView
+        style={[style, { borderRadius }]}
+        glassEffectStyle="regular"
+        colorScheme={dark ? 'dark' : 'light'}
+        isInteractive={interactive}
+      >
         {children}
       </GlassView>
     );
   }
 
-  if (Platform.OS === 'android') {
-    return (
-      <View style={[style, { backgroundColor: colors.secondaryGroupedBackground }]}>
-        {children}
-      </View>
-    );
-  }
-
   return (
-    <BlurView
-      tint={dark ? 'systemMaterialDark' : 'systemMaterialLight'}
-      intensity={90}
-      style={[style, styles.clip, { borderColor: colors.separator }]}
-    >
+    <View style={[styles.base, style, { borderRadius }]}>
+      <GlassFill borderRadius={borderRadius} />
       {children}
-    </BlurView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  clip: {
+  base: {
     overflow: 'hidden',
-    borderWidth: StyleSheet.hairlineWidth,
   },
 });

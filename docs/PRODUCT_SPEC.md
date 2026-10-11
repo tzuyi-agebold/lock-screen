@@ -39,70 +39,86 @@ intention screen.
 
 ### 2. Set an intention (the "unlock moment")
 
-- Large title: **"What are you here to do?"** The text field is focused, so typing can start
-  immediately.
-- Mic button: on-device dictation streams into the field. Unavailable → tip to use the keyboard mic.
-- Suggestions: recent intentions first, then defaults ("Reply to messages", "Check my calendar"…).
-- **Remind me every:** segmented control 5 / 10 / 15 min (default 10, then the last choice).
-- **Time limit:** toggle, revealing 15 / 30 / 45 / 60 min.
-- **Start** (disabled until there's text) → session begins with a medium haptic. Notification
-  permission is requested here if it hasn't been yet (asked in context, per HIG).
+The home screen sits on a slowly moving, blurred field of nature colors (see Design system).
+Only the essentials are on it:
+
+- A glass settings button at the top right.
+- A large text field with the prompt **"What are you here to do?"**, plus a glass mic button.
+  On-device dictation streams into the field; if it's unavailable, a one-line tip points to the
+  keyboard mic.
+- **REMIND:** 5m / 10m / 15m (default 10, then the last choice).
+- **LIMIT:** Off / 15m / 30m / 45m / 1h.
+- A glass **Begin** button, disabled until there's text. The session begins with a medium haptic,
+  and notification permission is requested here if it hasn't been yet (asked in context, per HIG).
 
 Validation: 1–120 characters; whitespace collapsed (dictation adds stray newlines).
 
 ### 3. During a session
 
-- Dashboard: the intention in large type, time elapsed, next reminder countdown, time left with
-  a progress bar, today's tally.
+- The screen goes quiet: plain black (or white), the intention in large type, and one thin
+  countdown (time left when there's a limit, otherwise the next reminder) with a hairline
+  progress bar. **Done** (glass) and **End session** (quiet).
 - **Floating pill** on top of the app, starting in the bottom-right corner:
   - Drag → follows the finger with a slight lift; release → springs to the nearest corner,
     following the flick (WWDC "Designing Fluid Interfaces" projection).
   - Drag or fling past the left/right edge → tucks away, leaving a 28-pt tab with a chevron.
     Tap the tab → back to the corner.
-  - Tap → expands: full intention, progress bar, **I did it · Tuck · Close**.
-  - Close → hidden for this session ("Show floating reminder" on the dashboard brings it back).
+  - Tap → expands: full intention, progress, **Done · Tuck · Close**.
+  - Close → hidden for this session ("Show reminder" on the session screen brings it back).
   - When a reminder fires while the app is open, the pill comes out of the edge and bounces
     gently (no banner covering the screen).
 - **Reminders** on the grid `start + k × interval`, never at or after the time limit, capped at
   2 hours without a limit and at 60 pending notifications (iOS allows 64).
   Copy: "Still on track? · 10 min in. You unlocked to: Reply to Sam".
-- **I did it** (dashboard, pill, or notification action) → session completed, success haptic,
-  pending and delivered notifications cleared, and a "Done: …" banner on the next screen.
-- **End without finishing** → recorded as ended.
+- **Done** (session screen, pill, or the notification's "I did it" action) → session completed,
+  success haptic, pending and delivered notifications cleared, and a quiet "Done. Phone down?"
+  line on the home screen.
+- **End session** → recorded as ended.
 
 ### 4. Time's up
 
-- At the limit: time-sensitive notification ("Time's up. You unlocked to: …"). In the app, the
-  full-screen, always-dark **Time's up** screen.
-- "Did you get it done?" → **Yes, I did it** / **Not this time** / **5 more minutes** (once
-  per session, counted from now).
-- Then **Phone down**: a 60-second rest with a countdown before "Set a new intention" unlocks.
+- At the limit: time-sensitive notification ("Time's up. You unlocked to: …"). In the app, a
+  full-screen, plain **Time's up** screen with the intention.
+- "Did you get it done?" → **Yes, done** / **Not this time** / **5 more min** (once per session,
+  counted from now).
+- Then **Phone down**: a 60-second rest with a countdown before "New intention" unlocks.
 - Phase 2: apps stay shielded by Screen Time until the person answers.
 
 ### 5. Settings (sheet)
 
-Default reminder, default time limit, notifications status (opens iOS Settings), haptics, the
-"coming in the App Store version" entry points, history (last 20, outcome icons, clear with
-confirmation), version.
+Default reminder and limit, notifications status (opens iOS Settings), haptics, history (last 20,
+outcome glyphs, clear with confirmation), version.
 
 ## Design system
 
-Follows Apple's Human Interface Guidelines; tokens live in `src/ui/theme`.
+Monochrome, quiet and precise (references: Linear, Cosmos), within Apple's Human Interface
+Guidelines. Tokens live in `src/ui/theme`.
 
-- **Color:** iOS semantic system colors, light and dark. Indigo accent (calm, not alarming).
-  The time's-up screen uses a deep indigo night.
-- **Type:** Dynamic Type text styles (Large Title 34 … Caption 2 11), SF Pro, and SF Pro Rounded
-  with tabular numerals for timers.
-- **Components:** filled / tinted / gray / plain capsule buttons, inset-grouped lists with icon
-  tiles, native segmented control and switch, SF Symbols, Liquid Glass (iOS 26+) or system blur
-  for floating chrome.
+- **Color:** black and white only, following the phone's appearance (black UI in dark mode,
+  white in light mode). The accent is the label color itself; hierarchy comes from opacity
+  (100 / 56 / 34 / 18%) and hairlines. Color appears in exactly one place: the ambient
+  background. Red is reserved for the single destructive action.
+- **Ambient background (home, onboarding):** four soft radial light fields in nature colors that
+  drift, breathe and fade on long, unrelated periods (14–26 s), frosted by a blur, with fine
+  grain and a vignette for legibility. The palette follows the time of day: dawn (amber, clay
+  rose, sand, sky haze), day (pine, moss, lake teal, mist sage), dusk/night (deep teal, slate
+  blue, violet haze, sea glass). It holds still with Reduce Motion.
+- **Materials:** no solid buttons. Every control uses the same glass / brushed-metal material:
+  a frosted blur, a soft vertical sheen gradient, a hairline rim and a thin highlight along the
+  top edge (white-on-dark or soft-white-on-light).
+- **Type:** SF Pro with tight tracking. `display` (32) for the intention, a thin `numeral` (64)
+  for countdowns, `micro` uppercase labels (11) used sparingly; Dynamic Type sizes elsewhere.
+- **Components:** glass and quiet capsule buttons, a glass-indicator choice group (segmented
+  control), a monochrome toggle, glass icon buttons, hairline lists without icon tiles, and
+  Liquid Glass (iOS 26+) for the floating pill.
 - **Motion:** springs approximating SwiftUI `.snappy` / `.smooth` / `.bouncy`. Press feedback
-  scales controls to 0.97. Every animation falls back to fades when Reduce Motion is on.
-- **Haptics:** selection (pickers, chips), light (pill settles), medium (start), success
-  (done), warning (time's up). Can be turned off in Settings.
-- **Accessibility:** VoiceOver labels everywhere, pill custom actions (I did it / Tuck away /
-  Close), live countdowns read as "4 minutes 5 seconds", 44-pt targets, Dynamic Type with sensible
-  caps on floating chrome.
+  scales controls to 0.97, the choice indicator glides, and the home screen cross-fades into the
+  quiet session screen. Every animation falls back to fades or stillness with Reduce Motion.
+- **Haptics:** selection (choices), light (pill settles), medium (begin), success (done),
+  warning (time's up). Can be turned off in Settings.
+- **Accessibility:** VoiceOver labels everywhere (choices are radios with spoken labels like
+  "Every 5 minutes"), pill custom actions (Done / Tuck away / Close), countdowns read as
+  "4 minutes 5 seconds", 44-pt targets, Dynamic Type with sensible caps on floating chrome.
 
 ## Data & privacy
 

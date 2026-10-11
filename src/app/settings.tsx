@@ -3,25 +3,19 @@ import { useEffect, useState } from 'react';
 import { Alert, Linking, Platform, ScrollView, StyleSheet } from 'react-native';
 
 import { formatClockTime, formatDuration } from '@/domain/duration';
-import {
-  REMINDER_INTERVALS,
-  TIME_LIMITS,
-  type SessionOutcome,
-  type SessionRecord,
-} from '@/domain/session';
+import type { SessionOutcome, SessionRecord, TimeLimit } from '@/domain/session';
+import { LIMIT_CHOICES, REMINDER_CHOICES } from '@/features/intention/choices';
+import { haptics } from '@/services/haptics';
 import { reminders, type PermissionState } from '@/services/notifications';
 import { useSessionStore } from '@/state/sessionStore';
 import { useSettingsStore } from '@/state/settingsStore';
-import { ListCell, ListRow, ListSection, SegmentedControl, type IconName } from '@/ui/components';
-import { spacing, type ColorName } from '@/ui/theme';
+import { ChoiceGroup, ListRow, ListSection, Text, type IconName } from '@/ui/components';
+import { spacing, useTheme } from '@/ui/theme';
 
-const REMINDER_OPTIONS = REMINDER_INTERVALS.map((value) => ({ value, label: `${value} min` }));
-const LIMIT_OPTIONS = TIME_LIMITS.map((value) => ({ value, label: `${value} min` }));
-
-const OUTCOME: Record<SessionOutcome, { label: string; icon: IconName; color: ColorName }> = {
-  completed: { label: 'Done', icon: 'checkCircle', color: 'green' },
-  abandoned: { label: 'Ended', icon: 'minus', color: 'gray' },
-  timedOut: { label: 'Time’s up', icon: 'hourglass', color: 'orange' },
+const OUTCOME: Record<SessionOutcome, { label: string; icon: IconName }> = {
+  completed: { label: 'Done', icon: 'check' },
+  abandoned: { label: 'Ended', icon: 'minus' },
+  timedOut: { label: 'Time’s up', icon: 'hourglass' },
 };
 
 const PERMISSION_LABEL: Record<PermissionState, string> = {
@@ -53,6 +47,7 @@ function recordSubtitle(record: SessionRecord) {
 }
 
 export default function Settings() {
+  const { colors } = useTheme();
   const settings = useSettingsStore();
   const history = useSessionStore((state) => state.history);
   const clearHistory = useSessionStore((state) => state.clearHistory);
@@ -70,42 +65,43 @@ export default function Settings() {
     else if (permission === 'denied' || permission === 'granted') Linking.openSettings();
   };
 
+  const onLimitChange = (value: TimeLimit | null) => {
+    haptics.selection();
+    settings.setTimeLimitEnabled(value !== null);
+    if (value !== null) settings.setTimeLimitMinutes(value);
+  };
+
   return (
-    <ScrollView contentInsetAdjustmentBehavior="automatic" contentContainerStyle={styles.content}>
-      <ListSection header="Default reminder" footer="Pre-selected each time you set an intention.">
-        <ListCell>
-          <SegmentedControl
-            options={REMINDER_OPTIONS}
-            value={settings.reminderMinutes}
-            onChange={settings.setReminderMinutes}
-            accessibilityLabel="Default reminder interval"
-          />
-        </ListCell>
+    <ScrollView
+      style={{ backgroundColor: colors.background }}
+      contentInsetAdjustmentBehavior="automatic"
+      contentContainerStyle={styles.content}
+    >
+      <ListSection header="Remind" bare>
+        <ChoiceGroup
+          options={REMINDER_CHOICES}
+          value={settings.reminderMinutes}
+          onChange={(value) => {
+            haptics.selection();
+            settings.setReminderMinutes(value);
+          }}
+          accessibilityLabel="Default reminder interval"
+        />
       </ListSection>
 
-      <ListSection header="Default time limit">
-        <ListRow
-          title="Time limit"
-          icon="hourglass"
-          iconBackground="indigo"
-          toggle={{ value: settings.timeLimitEnabled, onValueChange: settings.setTimeLimitEnabled }}
-        >
-          {settings.timeLimitEnabled ? (
-            <SegmentedControl
-              options={LIMIT_OPTIONS}
-              value={settings.timeLimitMinutes}
-              onChange={settings.setTimeLimitMinutes}
-              accessibilityLabel="Default time limit"
-            />
-          ) : null}
-        </ListRow>
+      <ListSection header="Limit" bare>
+        <ChoiceGroup
+          options={LIMIT_CHOICES}
+          value={settings.timeLimitEnabled ? settings.timeLimitMinutes : null}
+          onChange={onLimitChange}
+          accessibilityLabel="Default time limit"
+        />
       </ListSection>
 
       <ListSection>
         <ListRow
           title="Notifications"
           icon="bell"
-          iconBackground="red"
           value={permission ? PERMISSION_LABEL[permission] : undefined}
           chevron={permission !== 'unsupported'}
           onPress={permission === 'unsupported' ? undefined : onNotificationsPress}
@@ -113,47 +109,13 @@ export default function Settings() {
         <ListRow
           title="Haptics"
           icon="sparkles"
-          iconBackground="blue"
           toggle={{ value: settings.hapticsEnabled, onValueChange: settings.setHapticsEnabled }}
         />
       </ListSection>
 
-      <ListSection
-        header="Coming in the App Store version"
-        footer="iOS doesn’t let any app appear right after Face ID or draw over other apps. These are the Apple-approved ways Intention will meet you there."
-      >
-        <ListRow
-          title="Lock Screen button"
-          subtitle="Swap the flashlight for “Set Intention” (iOS 18+)"
-          icon="lockScreen"
-          iconBackground="tint"
-        />
-        <ListRow
-          title="Live Activity"
-          subtitle="Your intention in the Dynamic Island, over every app"
-          icon="island"
-          iconBackground="indigo"
-        />
-        <ListRow
-          title="Screen Time limit"
-          subtitle="Pause distracting apps when time’s up"
-          icon="shield"
-          iconBackground="teal"
-        />
-        <ListRow
-          title="Shortcuts automation"
-          subtitle="Ask for an intention when Instagram opens"
-          icon="shortcuts"
-          iconBackground="orange"
-        />
-      </ListSection>
-
-      <ListSection
-        header="History"
-        footer="Stored only on this device. Intention has no account and collects no data."
-      >
+      <ListSection header="History">
         {history.length === 0 ? (
-          <ListRow title="No intentions yet" />
+          <ListRow title="Nothing yet" />
         ) : (
           history
             .slice(0, 20)
@@ -163,7 +125,6 @@ export default function Settings() {
                 title={record.intention}
                 subtitle={recordSubtitle(record)}
                 icon={OUTCOME[record.outcome].icon}
-                iconBackground={OUTCOME[record.outcome].color}
               />
             ))
         )}
@@ -172,9 +133,9 @@ export default function Settings() {
         ) : null}
       </ListSection>
 
-      <ListSection>
-        <ListRow title="Version" value={Constants.expoConfig?.version ?? '—'} />
-      </ListSection>
+      <Text variant="micro" color="quaternaryLabel" align="center">
+        Intention {Constants.expoConfig?.version ?? ''} · On this device only
+      </Text>
     </ScrollView>
   );
 }

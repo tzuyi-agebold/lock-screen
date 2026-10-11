@@ -7,9 +7,9 @@ if you set a time limit, asks you to put the phone down when time's up.
 Built with **Expo SDK 57 · React Native 0.86 · TypeScript (strict)**. It compiles to a real native
 iOS app (not a web wrapper), and the same code ships to TestFlight and the App Store.
 
-| Intention                                                            | Session + floating pill                                      | Time's up                                  |
-| -------------------------------------------------------------------- | ------------------------------------------------------------ | ------------------------------------------ |
-| Type or dictate your goal, then pick reminders and an optional limit | Draggable pill that snaps to corners and tucks into the edge | A calm stop screen, then a one-minute rest |
+| Home                                                                                                | Session + floating pill                                                        | Time's up                                   |
+| --------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------ | ------------------------------------------- |
+| Type or dictate your goal and pick reminders and a limit, over slowly moving, blurred nature colors | Quiet black or white screen; a glass pill that snaps to corners and tucks away | A plain stop screen, then a one-minute rest |
 
 ---
 
@@ -92,8 +92,8 @@ src/
     haptics.ts
   state/                  Zustand stores persisted on-device (AsyncStorage)
   ui/
-    theme/                iOS system colors (light/dark), Dynamic Type, spacing, springs
-    components/           HIG components: Button, List, SegmentedControl, GlassSurface…
+    theme/                Monochrome colors, glass material, type, ambient palettes, springs
+    components/           Glass Button, ChoiceGroup, AmbientBackground, List, GlassSurface…
 docs/                     Product spec, App Review notes, roadmap
 ```
 
@@ -110,9 +110,12 @@ docs/                     Product spec, App Review notes, roadmap
   Expo Go are detected at runtime and degrade gracefully.
 - **Privacy by design:** no accounts, no network calls, no analytics. Everything is stored on
   the device.
-- **Apple HIG throughout:** system colors with dark mode, Dynamic Type text styles, SF Symbols,
-  native `UISegmentedControl` / `UISwitch`, 44-pt hit targets, spring motion that respects
-  Reduce Motion, VoiceOver labels and custom actions, haptics, and Liquid Glass on iOS 26+.
+- **Monochrome glass design** (Linear / Cosmos-like), within Apple's HIG: black and white only,
+  following the phone's light/dark setting; glass / brushed-metal controls instead of solid
+  buttons; an ambient background of drifting nature colors that follows the time of day. Also
+  Dynamic Type, SF Symbols, 44-pt hit targets, springs that respect Reduce Motion, VoiceOver
+  labels and custom actions, haptics, and Liquid Glass on iOS 26+. See the Design system section
+  in [docs/PRODUCT_SPEC.md](docs/PRODUCT_SPEC.md).
 
 ---
 

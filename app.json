@@ -9,6 +9,11 @@
     "userInterfaceStyle": "automatic",
     "ios": {
       "bundleIdentifier": "com.agebold.intention",
+      "icon": {
+        "light": "./assets/icon-light.png",
+        "dark": "./assets/icon-dark.png",
+        "tinted": "./assets/icon-tinted.png"
+      },
       "supportsTablet": false,
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false
@@ -31,7 +36,7 @@
     "android": {
       "package": "com.agebold.intention",
       "adaptiveIcon": {
-        "backgroundColor": "#5856D6",
+        "backgroundColor": "#000000",
         "foregroundImage": "./assets/android-icon-foreground.png",
         "backgroundImage": "./assets/android-icon-background.png",
         "monochromeImage": "./assets/android-icon-monochrome.png"
@@ -50,10 +55,11 @@
         "expo-splash-screen",
         {
           "image": "./assets/splash-icon.png",
-          "imageWidth": 120,
+          "imageWidth": 96,
           "resizeMode": "contain",
-          "backgroundColor": "#F2F2F7",
+          "backgroundColor": "#FFFFFF",
           "dark": {
+            "image": "./assets/splash-icon-dark.png",
             "backgroundColor": "#000000"
           }
         }

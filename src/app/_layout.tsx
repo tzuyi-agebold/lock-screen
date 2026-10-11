@@ -31,25 +31,25 @@ export default function RootLayout() {
     ...(theme.dark ? DarkTheme : DefaultTheme),
     colors: {
       ...(theme.dark ? DarkTheme : DefaultTheme).colors,
-      primary: theme.colors.tint,
-      background: theme.colors.groupedBackground,
-      card: theme.colors.secondaryGroupedBackground,
+      primary: theme.colors.label,
+      background: theme.colors.background,
+      card: theme.colors.background,
       text: theme.colors.label,
-      border: theme.colors.separator,
+      border: theme.colors.border,
     },
   };
 
   return (
     <GestureHandlerRootView
-      style={[styles.root, { backgroundColor: theme.dark ? '#111' : '#E5E5EA' }]}
+      style={[styles.root, { backgroundColor: theme.dark ? '#0B0B0B' : '#EDEDED' }]}
     >
       <SafeAreaProvider>
         <ThemeProvider value={navigationTheme}>
-          <View style={[styles.device, { backgroundColor: theme.colors.groupedBackground }]}>
+          <View style={[styles.device, { backgroundColor: theme.colors.background }]}>
             <Stack
               screenOptions={{
                 headerShown: false,
-                contentStyle: { backgroundColor: theme.colors.groupedBackground },
+                contentStyle: { backgroundColor: theme.colors.background },
               }}
             >
               <Stack.Screen name="index" />
@@ -63,10 +63,13 @@ export default function RootLayout() {
                   presentation: 'modal',
                   headerShown: true,
                   title: 'Settings',
+                  headerShadowVisible: false,
+                  headerStyle: { backgroundColor: theme.colors.background },
+                  headerTitleStyle: { fontWeight: '600' },
                   headerRight: () => (
                     <Button
                       title="Done"
-                      variant="plain"
+                      variant="quiet"
                       size="small"
                       onPress={() => navigation.goBack()}
                     />
@@ -104,7 +107,7 @@ const styles = StyleSheet.create({
         maxWidth: WEB_PREVIEW_MAX_WIDTH,
         alignSelf: 'center',
         overflow: 'hidden',
-        boxShadow: '0 0 40px rgba(0, 0, 0, 0.12)',
+        boxShadow: '0 0 60px rgba(0, 0, 0, 0.18)',
       },
       default: {},
     }),

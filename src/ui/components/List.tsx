@@ -1,24 +1,22 @@
 import { Children, cloneElement, isValidElement, type ReactElement, type ReactNode } from 'react';
-import { Platform, StyleSheet, Switch, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 
-import { MIN_TOUCH_TARGET, radius, spacing, useTheme, type ColorName } from '../theme';
+import { MIN_TOUCH_TARGET, radius, spacing, useTheme } from '../theme';
 import { Icon, type IconName } from './Icon';
 import { PressableScale } from './PressableScale';
 import { Text } from './Text';
-
-const ICON_TILE = 30;
-
-/** react-native-web colors the "on" thumb separately (teal by default); keep it iOS white. */
-const webSwitchProps: object = Platform.OS === 'web' ? { activeThumbColor: '#FFFFFF' } : {};
+import { Toggle } from './Toggle';
 
 export interface ListSectionProps {
   header?: string;
   footer?: string;
+  /** No card around the content — for controls that carry their own outline. */
+  bare?: boolean;
   children: ReactNode;
 }
 
-/** An inset-grouped list section, like the Settings app. */
-export function ListSection({ header, footer, children }: ListSectionProps) {
+/** A quiet grouped section: micro header, hairline-bordered card, hairline separators. */
+export function ListSection({ header, footer, bare = false, children }: ListSectionProps) {
   const { colors } = useTheme();
   const rows = Children.toArray(children).filter(isValidElement) as ReactElement<{
     separator?: boolean;
@@ -28,21 +26,46 @@ export function ListSection({ header, footer, children }: ListSectionProps) {
     <View style={styles.section}>
       {header ? (
         <Text
-          variant="footnote"
-          color="secondaryLabel"
+          variant="micro"
+          color="tertiaryLabel"
           style={styles.header}
           accessibilityRole="header"
         >
-          {header.toUpperCase()}
+          {header}
         </Text>
       ) : null}
-      <View style={[styles.card, { backgroundColor: colors.secondaryGroupedBackground }]}>
-        {rows.map((row, index) => cloneElement(row, { separator: index < rows.length - 1 }))}
-      </View>
+      {bare ? (
+        children
+      ) : (
+        <View
+          style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border }]}
+        >
+          {rows.map((row, index) => cloneElement(row, { separator: index < rows.length - 1 }))}
+        </View>
+      )}
       {footer ? (
-        <Text variant="footnote" color="secondaryLabel" style={styles.footer}>
+        <Text variant="footnote" color="tertiaryLabel" style={styles.footer}>
           {footer}
         </Text>
+      ) : null}
+    </View>
+  );
+}
+
+export interface ListCellProps {
+  children: ReactNode;
+  /** Injected by `ListSection`. */
+  separator?: boolean;
+}
+
+/** A free-form cell inside a `ListSection`, e.g. a full-width choice group. */
+export function ListCell({ children, separator }: ListCellProps) {
+  const { colors } = useTheme();
+  return (
+    <View style={styles.cell}>
+      {children}
+      {separator ? (
+        <View style={[styles.separator, { left: spacing.lg, backgroundColor: colors.border }]} />
       ) : null}
     </View>
   );
@@ -52,7 +75,6 @@ export interface ListRowProps {
   title: string;
   subtitle?: string;
   icon?: IconName;
-  iconBackground?: ColorName;
   /** Trailing secondary text, e.g. the current value. */
   value?: string;
   /** Show a disclosure chevron (navigates somewhere). */
@@ -61,7 +83,7 @@ export interface ListRowProps {
   toggle?: { value: boolean; onValueChange: (value: boolean) => void };
   onPress?: () => void;
   destructive?: boolean;
-  /** Full-width content below the title row (e.g. a segmented control). */
+  /** Full-width content below the title row. */
   children?: ReactNode;
   /** Injected by `ListSection`. */
   separator?: boolean;
@@ -72,7 +94,6 @@ export function ListRow({
   title,
   subtitle,
   icon,
-  iconBackground = 'tint',
   value,
   chevron,
   toggle,
@@ -83,47 +104,39 @@ export function ListRow({
   accessibilityHint,
 }: ListRowProps) {
   const { colors } = useTheme();
-  const inset = icon ? spacing.lg + ICON_TILE + spacing.md : spacing.lg;
+  const inset = icon ? spacing.lg + 20 + spacing.md : spacing.lg;
 
   const content = (
     <View style={styles.rowOuter}>
       <View style={styles.row}>
-        {icon ? (
-          <View style={[styles.iconTile, { backgroundColor: colors[iconBackground] }]}>
-            <Icon name={icon} size={17} tintColor="#FFFFFF" />
-          </View>
-        ) : null}
+        {icon ? <Icon name={icon} size={16} color="secondaryLabel" /> : null}
         <View style={styles.titles}>
-          <Text color={destructive ? 'red' : 'label'}>{title}</Text>
+          <Text color={destructive ? 'danger' : 'label'} numberOfLines={2}>
+            {title}
+          </Text>
           {subtitle ? (
-            <Text variant="footnote" color="secondaryLabel">
+            <Text variant="footnote" color="tertiaryLabel">
               {subtitle}
             </Text>
           ) : null}
         </View>
         {value ? (
-          <Text color="secondaryLabel" numberOfLines={1} style={styles.value}>
+          <Text color="tertiaryLabel" numberOfLines={1} style={styles.value}>
             {value}
           </Text>
         ) : null}
         {toggle ? (
-          <Switch
+          <Toggle
             value={toggle.value}
             onValueChange={toggle.onValueChange}
-            trackColor={{ true: colors.green, false: colors.fill }}
-            thumbColor="#FFFFFF"
-            {...webSwitchProps}
-            ios_backgroundColor={colors.fill}
             accessibilityLabel={title}
           />
         ) : null}
-        {chevron ? (
-          <Icon name="chevronRight" size={14} color="tertiaryLabel" weight="semibold" />
-        ) : null}
+        {chevron ? <Icon name="chevronRight" size={12} color="tertiaryLabel" /> : null}
       </View>
       {children ? <View style={styles.extra}>{children}</View> : null}
       {separator ? (
-        <View style={[styles.separator, { left: inset, backgroundColor: colors.separator }]} />
+        <View style={[styles.separator, { left: inset, backgroundColor: colors.border }]} />
       ) : null}
     </View>
   );
@@ -133,7 +146,7 @@ export function ListRow({
     <PressableScale
       onPress={onPress}
       pressedScale={1}
-      pressedOpacity={0.55}
+      pressedOpacity={0.5}
       accessibilityRole="button"
       accessibilityLabel={value ? `${title}, ${value}` : title}
       accessibilityHint={accessibilityHint}
@@ -143,60 +156,35 @@ export function ListRow({
   );
 }
 
-export interface ListCellProps {
-  children: ReactNode;
-  /** Injected by `ListSection`. */
-  separator?: boolean;
-}
-
-/** A free-form cell inside a `ListSection`, e.g. a full-width segmented control. */
-export function ListCell({ children, separator }: ListCellProps) {
-  const { colors } = useTheme();
-  return (
-    <View style={styles.cell}>
-      {children}
-      {separator ? (
-        <View style={[styles.separator, { left: spacing.lg, backgroundColor: colors.separator }]} />
-      ) : null}
-    </View>
-  );
-}
-
 const styles = StyleSheet.create({
-  cell: {
-    padding: spacing.md,
-  },
   section: {
     marginBottom: spacing.xxl,
   },
   header: {
     marginHorizontal: spacing.lg,
-    marginBottom: spacing.sm - 2,
+    marginBottom: spacing.sm,
   },
   footer: {
     marginHorizontal: spacing.lg,
-    marginTop: spacing.sm - 2,
+    marginTop: spacing.sm,
   },
   card: {
     borderRadius: radius.lg,
+    borderWidth: 1,
     overflow: 'hidden',
+  },
+  cell: {
+    padding: spacing.md,
   },
   rowOuter: {
     paddingHorizontal: spacing.lg,
   },
   row: {
-    minHeight: MIN_TOUCH_TARGET,
-    paddingVertical: spacing.sm + 3,
+    minHeight: MIN_TOUCH_TARGET + 4,
+    paddingVertical: spacing.md,
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing.md,
-  },
-  iconTile: {
-    width: ICON_TILE,
-    height: ICON_TILE,
-    borderRadius: 7,
-    alignItems: 'center',
-    justifyContent: 'center',
   },
   titles: {
     flex: 1,

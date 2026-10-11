@@ -7,17 +7,16 @@ import Animated, {
   withTiming,
 } from 'react-native-reanimated';
 
-import { durations, useTheme, type ColorName } from '../theme';
+import { durations, useTheme } from '../theme';
 
 export interface ProgressBarProps {
   /** 0 to 1. */
   progress: number;
-  color?: ColorName;
   accessibilityLabel: string;
 }
 
-/** A 4-pt capsule progress bar, like `UIProgressView`. */
-export function ProgressBar({ progress, color = 'tint', accessibilityLabel }: ProgressBarProps) {
+/** A 2-pt hairline progress bar in the label color. */
+export function ProgressBar({ progress, accessibilityLabel }: ProgressBarProps) {
   const { colors } = useTheme();
   const reduceMotion = useReducedMotion();
   const value = useSharedValue(progress);
@@ -32,24 +31,23 @@ export function ProgressBar({ progress, color = 'tint', accessibilityLabel }: Pr
 
   return (
     <View
-      style={[styles.track, { backgroundColor: colors.tertiaryFill }]}
+      style={[styles.track, { backgroundColor: colors.surfaceStrong }]}
       accessibilityRole="progressbar"
       accessibilityLabel={accessibilityLabel}
       accessibilityValue={{ min: 0, max: 100, now: Math.round(progress * 100) }}
     >
-      <Animated.View style={[styles.fill, { backgroundColor: colors[color] }, fillStyle]} />
+      <Animated.View style={[styles.fill, { backgroundColor: colors.label }, fillStyle]} />
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   track: {
-    height: 4,
-    borderRadius: 2,
+    height: 2,
+    borderRadius: 1,
     overflow: 'hidden',
   },
   fill: {
     height: '100%',
-    borderRadius: 2,
   },
 });

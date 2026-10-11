@@ -1,5 +1,5 @@
 import { useRouter } from 'expo-router';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import {
   Keyboard,
   KeyboardAvoidingView,
@@ -9,70 +9,55 @@ import {
   TextInput,
   View,
 } from 'react-native';
-import Animated, { FadeIn, FadeInDown, FadeOut, LinearTransition } from 'react-native-reanimated';
+import Animated, { FadeIn, FadeOut } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import {
   INTENTION_MAX_LENGTH,
-  REMINDER_INTERVALS,
-  TIME_LIMITS,
   validateIntention,
   type ReminderInterval,
   type TimeLimit,
 } from '@/domain/session';
-import { useNow } from '@/hooks/useNow';
 import { haptics } from '@/services/haptics';
 import { reminders } from '@/services/notifications';
 import { useSpeechToText, type SpeechError } from '@/services/speech/useSpeechToText';
 import { useSessionStore } from '@/state/sessionStore';
 import { useSettingsStore } from '@/state/settingsStore';
-import {
-  Button,
-  Icon,
-  IconButton,
-  ListCell,
-  ListRow,
-  ListSection,
-  PressableScale,
-  SegmentedControl,
-  Text,
-} from '@/ui/components';
-import { durations, radius, spacing, typography, useTheme } from '@/ui/theme';
+import { AmbientBackground, Button, ChoiceGroup, IconButton, Text } from '@/ui/components';
+import { durations, spacing, typography, useTheme } from '@/ui/theme';
 
 import { startIntention } from '../session/sessionController';
+import { LIMIT_CHOICES, REMINDER_CHOICES } from './choices';
+import { joinDictation } from './dictation';
 import { MicButton } from './MicButton';
-import { buildSuggestions, joinDictation } from './suggestions';
-
-const REMINDER_OPTIONS = REMINDER_INTERVALS.map((value) => ({ value, label: `${value} min` }));
-const LIMIT_OPTIONS = TIME_LIMITS.map((value) => ({ value, label: `${value} min` }));
 
 const SPEECH_HINTS: Record<SpeechError, string> = {
-  unavailable: 'Tip: tap the microphone on your keyboard to dictate.',
-  permission: 'To speak your intention, allow Microphone and Speech Recognition in Settings.',
-  failed: 'Couldn’t catch that. Try again, or type it.',
+  unavailable: 'Use the mic on your keyboard to dictate.',
+  permission: 'Allow Microphone and Speech Recognition in Settings to speak.',
+  failed: 'Didn’t catch that. Try again, or type it.',
 };
 
-/** How long the "you did it" banner stays after finishing a session. */
-const CELEBRATION_MS = 8000;
+/** How long the quiet "Done" line stays after finishing a session. */
+const CELEBRATION_MS = 6000;
 
 /**
- * The unlock moment: name one intention, choose how often to be reminded and, optionally,
- * when to stop.
+ * The unlock moment: one intention, how often to be reminded, and an optional limit — on a
+ * slowly shifting, blurred field of nature colors.
  */
 export function IntentionComposer() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { colors } = useTheme();
   const settings = useSettingsStore();
-  const history = useSessionStore((state) => state.history);
-  const now = useNow(60_000);
+  const lastRecord = useSessionStore((state) => state.history[0]);
 
   const [text, setText] = useState('');
   const [reminderMinutes, setReminderMinutes] = useState<ReminderInterval>(
     settings.reminderMinutes,
   );
-  const [limitEnabled, setLimitEnabled] = useState(settings.timeLimitEnabled);
-  const [limitMinutes, setLimitMinutes] = useState<TimeLimit>(settings.timeLimitMinutes);
+  const [limit, setLimit] = useState<TimeLimit | null>(
+    settings.timeLimitEnabled ? settings.timeLimitMinutes : null,
+  );
   const [starting, setStarting] = useState(false);
   const inputRef = useRef<TextInput>(null);
   const typedBeforeDictation = useRef('');
@@ -84,8 +69,6 @@ export function IntentionComposer() {
   const hint = speech.error ? SPEECH_HINTS[speech.error] : tip;
 
   const validation = validateIntention(text);
-  const suggestions = useMemo(() => buildSuggestions(history), [history]);
-  const lastRecord = history[0];
   const [celebrating, setCelebrating] = useState(
     () => lastRecord?.outcome === 'completed' && Date.now() - lastRecord.endedAt < CELEBRATION_MS,
   );
@@ -94,12 +77,6 @@ export function IntentionComposer() {
     const timer = setTimeout(() => setCelebrating(false), CELEBRATION_MS);
     return () => clearTimeout(timer);
   }, [celebrating]);
-
-  const today = new Date(now).toLocaleDateString(undefined, {
-    weekday: 'long',
-    month: 'long',
-    day: 'numeric',
-  });
 
   const onMicPress = async () => {
     if (speech.listening) {
@@ -117,7 +94,7 @@ export function IntentionComposer() {
     await speech.start();
   };
 
-  const onStart = async () => {
+  const onBegin = async () => {
     if (!validation.ok || starting) return;
     setStarting(true);
     speech.stop();
@@ -125,8 +102,8 @@ export function IntentionComposer() {
 
     // Remember these choices as next time's defaults.
     settings.setReminderMinutes(reminderMinutes);
-    settings.setTimeLimitEnabled(limitEnabled);
-    settings.setTimeLimitMinutes(limitMinutes);
+    settings.setTimeLimitEnabled(limit !== null);
+    if (limit !== null) settings.setTimeLimitMinutes(limit);
 
     // Ask for notification permission in context — the first time reminders matter.
     try {
@@ -136,205 +113,123 @@ export function IntentionComposer() {
     }
 
     try {
-      startIntention({
-        intention: validation.value,
-        reminderMinutes,
-        timeLimitMinutes: limitEnabled ? limitMinutes : null,
-      });
+      startIntention({ intention: validation.value, reminderMinutes, timeLimitMinutes: limit });
     } finally {
       setStarting(false);
     }
   };
 
   return (
-    <KeyboardAvoidingView
-      style={styles.fill}
-      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-    >
-      <ScrollView
+    <View style={styles.fill}>
+      <AmbientBackground />
+      <KeyboardAvoidingView
         style={styles.fill}
-        contentContainerStyle={[styles.content, { paddingTop: insets.top + spacing.sm }]}
-        keyboardShouldPersistTaps="handled"
-        keyboardDismissMode="interactive"
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       >
-        <View style={styles.topBar}>
-          <Text variant="subheadline" weight="600" color="secondaryLabel">
-            {today}
-          </Text>
-          <IconButton
-            icon="settings"
-            accessibilityLabel="Settings"
-            onPress={() => router.push('/settings')}
-          />
-        </View>
-
-        {celebrating && lastRecord ? (
-          <Animated.View
-            entering={FadeInDown.duration(durations.slow)}
-            exiting={FadeOut.duration(durations.base)}
-            style={[styles.celebration, { backgroundColor: colors.secondaryGroupedBackground }]}
-            accessibilityLiveRegion="polite"
-          >
-            <Icon name="checkCircle" size={22} color="green" />
-            <View style={styles.fill}>
-              <Text variant="subheadline" weight="600" numberOfLines={1}>
-                Done: {lastRecord.intention}
-              </Text>
-              <Text variant="footnote" color="secondaryLabel">
-                You did what you came for. Maybe put the phone down?
-              </Text>
-            </View>
-          </Animated.View>
-        ) : null}
-
-        <Text variant="largeTitle" accessibilityRole="header" style={styles.title}>
-          What are you here to do?
-        </Text>
-        <Text color="secondaryLabel" style={styles.subtitle}>
-          Name it before you dive in. You’ll get a gentle nudge if you drift.
-        </Text>
-
-        <View style={[styles.inputCard, { backgroundColor: colors.secondaryGroupedBackground }]}>
-          <TextInput
-            ref={inputRef}
-            value={text}
-            onChangeText={(value) => {
-              setText(value);
-              speech.dismissError();
-            }}
-            placeholder="e.g. Reply to Sam about Saturday"
-            placeholderTextColor={colors.tertiaryLabel}
-            selectionColor={colors.tint}
-            style={[styles.input, { color: colors.label }]}
-            multiline
-            maxLength={INTENTION_MAX_LENGTH}
-            returnKeyType="done"
-            submitBehavior="blurAndSubmit"
-            autoFocus
-            autoCapitalize="sentences"
-            accessibilityLabel="Your intention"
-            accessibilityHint="Type or dictate the one thing you came to do."
-            testID="intention-input"
-          />
-          <View style={styles.inputFooter}>
-            <Text variant="caption1" color="tertiaryLabel" tabular>
-              {text.length > INTENTION_MAX_LENGTH - 30
-                ? `${text.length}/${INTENTION_MAX_LENGTH}`
-                : speech.listening
-                  ? 'Listening…'
-                  : ''}
-            </Text>
-            <MicButton listening={speech.listening} onPress={onMicPress} />
-          </View>
-        </View>
-        {hint ? (
-          <Animated.View entering={FadeIn} exiting={FadeOut}>
-            <Text variant="footnote" color="secondaryLabel" style={styles.hint}>
-              {hint}
-            </Text>
-          </Animated.View>
-        ) : null}
-
         <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
+          style={styles.fill}
+          contentContainerStyle={[styles.content, { paddingTop: insets.top + spacing.sm }]}
           keyboardShouldPersistTaps="handled"
-          style={styles.chipsScroller}
-          contentContainerStyle={styles.chips}
-          accessibilityLabel="Suggestions"
+          keyboardDismissMode="interactive"
+          showsVerticalScrollIndicator={false}
         >
-          {suggestions.map((suggestion) => (
-            <PressableScale
-              key={suggestion}
-              onPress={() => {
-                haptics.selection();
-                setText(suggestion);
+          <View style={styles.topBar}>
+            {celebrating && lastRecord ? (
+              <Animated.View
+                entering={FadeIn.duration(durations.slow)}
+                exiting={FadeOut.duration(durations.slow)}
+                accessibilityLiveRegion="polite"
+              >
+                <Text variant="footnote" color="secondaryLabel">
+                  Done. Phone down?
+                </Text>
+              </Animated.View>
+            ) : (
+              <View />
+            )}
+            <IconButton
+              icon="settings"
+              accessibilityLabel="Settings"
+              onPress={() => router.push('/settings')}
+            />
+          </View>
+
+          <View style={styles.center}>
+            <TextInput
+              ref={inputRef}
+              value={text}
+              onChangeText={(value) => {
+                setText(value);
+                speech.dismissError();
               }}
-              accessibilityRole="button"
-              accessibilityLabel={`Use suggestion: ${suggestion}`}
-              style={[styles.chip, { backgroundColor: colors.secondaryGroupedBackground }]}
-            >
-              <Text variant="subheadline">{suggestion}</Text>
-            </PressableScale>
-          ))}
+              placeholder="What are you here to do?"
+              placeholderTextColor={colors.tertiaryLabel}
+              selectionColor={colors.label}
+              cursorColor={colors.label}
+              style={[styles.input, { color: colors.label }]}
+              multiline
+              maxLength={INTENTION_MAX_LENGTH}
+              returnKeyType="done"
+              submitBehavior="blurAndSubmit"
+              autoCapitalize="sentences"
+              accessibilityLabel="Your intention"
+              accessibilityHint="Type or dictate the one thing you came to do."
+              testID="intention-input"
+            />
+            <View style={styles.inputFooter}>
+              <Text variant="footnote" color="tertiaryLabel" style={styles.fill}>
+                {speech.listening ? 'Listening…' : (hint ?? '')}
+              </Text>
+              <MicButton listening={speech.listening} onPress={onMicPress} />
+            </View>
+
+            <View style={[styles.hairline, { backgroundColor: colors.border }]} />
+
+            <View style={styles.choice}>
+              <Text variant="micro" color="tertiaryLabel">
+                Remind
+              </Text>
+              <ChoiceGroup
+                options={REMINDER_CHOICES}
+                value={reminderMinutes}
+                onChange={(value) => {
+                  haptics.selection();
+                  setReminderMinutes(value);
+                }}
+                accessibilityLabel="Reminder interval"
+                testID="remind-choices"
+              />
+            </View>
+            <View style={styles.choice}>
+              <Text variant="micro" color="tertiaryLabel">
+                Limit
+              </Text>
+              <ChoiceGroup
+                options={LIMIT_CHOICES}
+                value={limit}
+                onChange={(value) => {
+                  haptics.selection();
+                  setLimit(value);
+                }}
+                accessibilityLabel="Time limit"
+                testID="limit-choices"
+              />
+            </View>
+          </View>
         </ScrollView>
 
-        <ListSection
-          header="Remind me every"
-          footer="A notification brings you back to your intention if you get pulled into something else."
-        >
-          <ListCell>
-            <SegmentedControl
-              options={REMINDER_OPTIONS}
-              value={reminderMinutes}
-              onChange={(value) => {
-                haptics.selection();
-                setReminderMinutes(value);
-              }}
-              accessibilityLabel="Reminder interval"
-            />
-          </ListCell>
-        </ListSection>
-
-        <Animated.View layout={LinearTransition.duration(durations.base)}>
-          <ListSection
-            header="Time limit"
-            footer={
-              limitEnabled
-                ? `After ${limitMinutes} minutes, you’ll be asked to put your phone down.`
-                : 'Optional. Decide now how much time this is worth.'
-            }
-          >
-            <ListRow
-              title="Set a time limit"
-              icon="hourglass"
-              iconBackground="indigo"
-              toggle={{
-                value: limitEnabled,
-                onValueChange: (value) => {
-                  haptics.selection();
-                  setLimitEnabled(value);
-                },
-              }}
-            >
-              {limitEnabled ? (
-                <Animated.View entering={FadeIn.duration(durations.base)} exiting={FadeOut}>
-                  <SegmentedControl
-                    options={LIMIT_OPTIONS}
-                    value={limitMinutes}
-                    onChange={(value) => {
-                      haptics.selection();
-                      setLimitMinutes(value);
-                    }}
-                    accessibilityLabel="Time limit"
-                  />
-                </Animated.View>
-              ) : null}
-            </ListRow>
-          </ListSection>
-        </Animated.View>
-      </ScrollView>
-
-      <View
-        style={[
-          styles.footer,
-          {
-            paddingBottom: Math.max(insets.bottom, spacing.lg),
-            backgroundColor: colors.groupedBackground,
-          },
-        ]}
-      >
-        <Button
-          title="Start"
-          icon="lockOpen"
-          onPress={onStart}
-          disabled={!validation.ok}
-          loading={starting}
-          accessibilityHint="Starts your intention and its reminders."
-          testID="start-button"
-        />
-      </View>
-    </KeyboardAvoidingView>
+        <View style={[styles.footer, { paddingBottom: Math.max(insets.bottom, spacing.lg) }]}>
+          <Button
+            title="Begin"
+            onPress={onBegin}
+            disabled={!validation.ok}
+            loading={starting}
+            accessibilityHint="Starts your intention and its reminders."
+            testID="start-button"
+          />
+        </View>
+      </KeyboardAvoidingView>
+    </View>
   );
 }
 
@@ -343,40 +238,24 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   content: {
-    paddingHorizontal: spacing.lg,
-    paddingBottom: spacing.xxl,
+    flexGrow: 1,
+    paddingHorizontal: spacing.xxl,
+    paddingBottom: spacing.lg,
   },
   topBar: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     minHeight: 44,
-    marginBottom: spacing.sm,
   },
-  celebration: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.md,
-    padding: spacing.lg,
-    borderRadius: radius.lg,
-    marginBottom: spacing.lg,
-  },
-  title: {
-    marginTop: spacing.sm,
-  },
-  subtitle: {
-    marginTop: spacing.sm,
-    marginBottom: spacing.xl,
-  },
-  inputCard: {
-    borderRadius: radius.lg,
-    paddingHorizontal: spacing.lg,
-    paddingTop: spacing.md,
-    paddingBottom: spacing.md,
+  center: {
+    flex: 1,
+    justifyContent: 'center',
+    paddingVertical: spacing.xxxl,
+    gap: spacing.lg,
   },
   input: {
-    ...typography.title3,
-    fontWeight: '400',
+    ...typography.display,
     minHeight: 84,
     textAlignVertical: 'top',
     padding: 0,
@@ -384,31 +263,17 @@ const styles = StyleSheet.create({
   inputFooter: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
-    marginTop: spacing.sm,
+    gap: spacing.md,
   },
-  hint: {
-    marginTop: spacing.sm,
-    marginHorizontal: spacing.lg,
+  hairline: {
+    height: StyleSheet.hairlineWidth,
+    marginVertical: spacing.sm,
   },
-  chipsScroller: {
-    marginHorizontal: -spacing.lg,
-    marginTop: spacing.md,
-    marginBottom: spacing.xxl,
-    flexGrow: 0,
-  },
-  chips: {
-    paddingHorizontal: spacing.lg,
+  choice: {
     gap: spacing.sm,
   },
-  chip: {
-    minHeight: 36,
-    justifyContent: 'center',
-    paddingHorizontal: spacing.md + 2,
-    borderRadius: radius.capsule,
-  },
   footer: {
-    paddingHorizontal: spacing.lg,
-    paddingTop: spacing.md,
+    paddingHorizontal: spacing.xxl,
+    paddingTop: spacing.sm,
   },
 });

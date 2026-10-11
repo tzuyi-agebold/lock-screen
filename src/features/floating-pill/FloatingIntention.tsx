@@ -26,14 +26,7 @@ import { limitProgress, nextReminderAt, remainingMs, type Session } from '@/doma
 import { useNow } from '@/hooks/useNow';
 import { haptics } from '@/services/haptics';
 import { useSessionStore } from '@/state/sessionStore';
-import {
-  GlassSurface,
-  Icon,
-  PressableScale,
-  ProgressBar,
-  Text,
-  type IconName,
-} from '@/ui/components';
+import { Button, GlassSurface, Icon, ProgressBar, Text, type IconName } from '@/ui/components';
 import { durations, radius, spacing, springs, useTheme } from '@/ui/theme';
 
 import { finishIntention } from '../session/sessionController';
@@ -94,7 +87,7 @@ function Pill({
   session: Session;
   area: { width: number; height: number };
 }) {
-  const { colors } = useTheme();
+  const { colors, glass } = useTheme();
   const insets = useSafeAreaInsets();
   const reduceMotion = useReducedMotion();
   const setPillVisible = useSessionStore((state) => state.setPillVisible);
@@ -282,6 +275,8 @@ function Pill({
     }
   };
 
+  const cornerRadius = expanded ? radius.xl : COMPACT_HEIGHT / 2;
+
   return (
     <Animated.View
       entering={FadeIn.duration(durations.base)}
@@ -290,14 +285,15 @@ function Pill({
         styles.container,
         {
           width: expanded ? Math.min(EXPANDED_WIDTH, area.width - spacing.xxl) : undefined,
-          borderRadius: expanded ? radius.xl : COMPACT_HEIGHT / 2,
+          borderRadius: cornerRadius,
+          boxShadow: glass.shadow,
         },
         positionStyle,
       ]}
       layout={LinearTransition.springify().damping(20)}
       onLayout={onPillLayout}
     >
-      <GlassSurface style={[styles.glass, expanded && styles.glassExpanded]} interactive>
+      <GlassSurface borderRadius={cornerRadius} interactive>
         <GestureDetector gesture={gesture}>
           <View
             style={[styles.header, !expanded && styles.headerCompact]}
@@ -307,18 +303,16 @@ function Pill({
             accessibilityHint={expanded ? 'Hides actions.' : 'Shows actions. Drag to move.'}
             accessibilityActions={[
               { name: 'activate' },
-              { name: 'done', label: 'I did it' },
+              { name: 'done', label: 'Done' },
               { name: 'tuck', label: 'Tuck away' },
               { name: 'close', label: 'Close floating reminder' },
             ]}
             onAccessibilityAction={onAccessibilityAction}
           >
-            <View style={[styles.badge, { backgroundColor: colors.tint }]}>
-              <Icon name="target" size={15} tintColor={colors.onTint} weight="semibold" />
-            </View>
+            <View style={[styles.dot, { backgroundColor: colors.label }]} />
             <Text
               variant={expanded ? 'headline' : 'subheadline'}
-              weight="600"
+              weight={expanded ? '600' : '500'}
               numberOfLines={expanded ? 3 : 1}
               style={styles.intention}
               maxFontSizeMultiplier={1.4}
@@ -327,11 +321,11 @@ function Pill({
             </Text>
             {countdown !== null ? (
               <View style={styles.countdown}>
-                <Icon name={countdownIcon} size={12} color="secondaryLabel" />
+                <Icon name={countdownIcon} size={11} color="tertiaryLabel" />
                 <Text
                   variant="footnote"
                   color="secondaryLabel"
-                  weight="600"
+                  weight="500"
                   tabular
                   maxFontSizeMultiplier={1.4}
                 >
@@ -352,14 +346,20 @@ function Pill({
               <ProgressBar progress={progress} accessibilityLabel="Time limit used" />
             ) : null}
             <View style={styles.actions}>
-              <PillAction
+              <Button
+                title="Done"
                 icon="check"
-                label="I did it"
-                prominent
+                size="small"
                 onPress={() => finishIntention('completed')}
+                style={styles.primaryAction}
               />
-              <PillAction icon="minimize" label="Tuck" onPress={tuckAway} />
-              <PillAction icon="close" label="Close" onPress={() => setPillVisible(false)} />
+              <Button title="Tuck" variant="quiet" size="small" onPress={tuckAway} />
+              <Button
+                title="Close"
+                variant="quiet"
+                size="small"
+                onPress={() => setPillVisible(false)}
+              />
             </View>
           </Animated.View>
         ) : null}
@@ -372,56 +372,19 @@ function Pill({
           pointerEvents="none"
           style={[
             styles.tab,
-            { backgroundColor: colors.tint },
+            { backgroundColor: colors.surfaceStrong },
             tuckSide === 'left' ? styles.tabOnRight : styles.tabOnLeft,
           ]}
         >
           <Icon
             name={tuckSide === 'left' ? 'chevronRight' : 'chevronLeft'}
-            size={14}
-            tintColor={colors.onTint}
-            weight="bold"
+            size={13}
+            color="label"
+            weight="semibold"
           />
         </Animated.View>
       ) : null}
     </Animated.View>
-  );
-}
-
-function PillAction({
-  icon,
-  label,
-  onPress,
-  prominent = false,
-}: {
-  icon: IconName;
-  label: string;
-  onPress: () => void;
-  prominent?: boolean;
-}) {
-  const { colors } = useTheme();
-  return (
-    <PressableScale
-      onPress={onPress}
-      accessibilityRole="button"
-      accessibilityLabel={label}
-      style={[
-        styles.action,
-        { backgroundColor: prominent ? colors.tint : colors.tertiaryFill },
-        prominent && styles.actionProminent,
-      ]}
-    >
-      <Icon
-        name={icon}
-        size={14}
-        tintColor={prominent ? colors.onTint : undefined}
-        color="label"
-        weight="semibold"
-      />
-      <Text variant="subheadline" weight="600" color={prominent ? 'onTint' : 'label'}>
-        {label}
-      </Text>
-    </PressableScale>
   );
 }
 
@@ -436,13 +399,6 @@ const styles = StyleSheet.create({
     left: 0,
     top: 0,
     maxWidth: EXPANDED_WIDTH,
-    boxShadow: '0 8px 24px rgba(0, 0, 0, 0.18)',
-  },
-  glass: {
-    borderRadius: COMPACT_HEIGHT / 2,
-  },
-  glassExpanded: {
-    borderRadius: radius.xl,
   },
   header: {
     flexDirection: 'row',
@@ -456,12 +412,11 @@ const styles = StyleSheet.create({
     maxWidth: COMPACT_MAX_WIDTH,
     paddingVertical: spacing.sm,
   },
-  badge: {
-    width: 28,
-    height: 28,
-    borderRadius: 14,
-    alignItems: 'center',
-    justifyContent: 'center',
+  dot: {
+    width: 7,
+    height: 7,
+    borderRadius: 3.5,
+    marginHorizontal: spacing.xs,
   },
   intention: {
     flexShrink: 1,
@@ -480,18 +435,10 @@ const styles = StyleSheet.create({
   },
   actions: {
     flexDirection: 'row',
-    gap: spacing.sm,
-  },
-  action: {
-    flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
     gap: spacing.xs,
-    minHeight: 36,
-    paddingHorizontal: spacing.md,
-    borderRadius: radius.capsule,
   },
-  actionProminent: {
+  primaryAction: {
     flex: 1,
   },
   tab: {

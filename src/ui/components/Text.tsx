@@ -1,12 +1,6 @@
 import { Text as RNText, type TextProps as RNTextProps, type TextStyle } from 'react-native';
 
-import {
-  roundedFontFamily,
-  typography,
-  useTheme,
-  type ColorName,
-  type TextVariant,
-} from '../theme';
+import { typography, useTheme, type ColorName, type TextVariant } from '../theme';
 
 export interface TextProps extends RNTextProps {
   variant?: TextVariant;
@@ -15,18 +9,15 @@ export interface TextProps extends RNTextProps {
   align?: TextStyle['textAlign'];
   /** Fixed-width digits so timers don't jitter. */
   tabular?: boolean;
-  /** SF Pro Rounded, for numerals. */
-  rounded?: boolean;
 }
 
-/** Text that always uses a Dynamic Type style and a semantic color. */
+/** Text that always uses a type-scale style and a semantic (monochrome) color. */
 export function Text({
   variant = 'body',
   color = 'label',
   weight,
   align,
   tabular,
-  rounded,
   style,
   ...rest
 }: TextProps) {
@@ -40,7 +31,6 @@ export function Text({
         weight !== undefined && { fontWeight: weight },
         align !== undefined && { textAlign: align },
         tabular && { fontVariant: ['tabular-nums'] },
-        rounded && { fontFamily: roundedFontFamily },
         style,
       ]}
     />

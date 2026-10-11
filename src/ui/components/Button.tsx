@@ -1,11 +1,17 @@
 import { ActivityIndicator, StyleSheet, View, type StyleProp, type ViewStyle } from 'react-native';
 
 import { MIN_TOUCH_TARGET, radius, spacing, useTheme, type ColorName } from '../theme';
+import { GlassFill } from './GlassFill';
 import { Icon, type IconName } from './Icon';
 import { PressableScale } from './PressableScale';
 import { Text } from './Text';
 
-export type ButtonVariant = 'filled' | 'tinted' | 'gray' | 'plain' | 'destructive';
+/**
+ * - `glass`: the primary action — translucent glass with a brushed-metal sheen, never solid.
+ * - `quiet`: text only, for secondary actions.
+ * - `danger`: quiet text for the one destructive action.
+ */
+export type ButtonVariant = 'glass' | 'quiet' | 'danger';
 export type ButtonSize = 'large' | 'medium' | 'small';
 
 export interface ButtonProps {
@@ -22,16 +28,20 @@ export interface ButtonProps {
 }
 
 const SIZE = {
-  large: { minHeight: 50, paddingHorizontal: spacing.xl, variant: 'headline', icon: 20 },
-  medium: { minHeight: MIN_TOUCH_TARGET, paddingHorizontal: spacing.lg, variant: 'body', icon: 18 },
-  small: { minHeight: 32, paddingHorizontal: spacing.md, variant: 'subheadline', icon: 15 },
+  large: { minHeight: 54, paddingHorizontal: spacing.xxl, variant: 'body', icon: 17 },
+  medium: {
+    minHeight: MIN_TOUCH_TARGET,
+    paddingHorizontal: spacing.xl,
+    variant: 'subheadline',
+    icon: 15,
+  },
+  small: { minHeight: 34, paddingHorizontal: spacing.md + 2, variant: 'footnote', icon: 13 },
 } as const;
 
-/** iOS button styles from the HIG: filled, tinted, gray and plain, all capsule-shaped. */
 export function Button({
   title,
   onPress,
-  variant = 'filled',
+  variant = 'glass',
   size = 'large',
   icon,
   disabled = false,
@@ -40,27 +50,11 @@ export function Button({
   style,
   testID,
 }: ButtonProps) {
-  const { colors } = useTheme();
+  const { colors, glass } = useTheme();
   const metrics = SIZE[size];
   const inactive = disabled || loading;
-
-  const background = {
-    filled: inactive ? colors.fill : colors.tint,
-    tinted: colors.tintFill,
-    gray: colors.fill,
-    plain: 'transparent',
-    destructive: colors.fill,
-  }[variant];
-
-  const labelColor: ColorName = inactive
-    ? 'tertiaryLabel'
-    : variant === 'filled'
-      ? 'onTint'
-      : variant === 'gray'
-        ? 'label'
-        : variant === 'destructive'
-          ? 'red'
-          : 'tint';
+  const labelColor: ColorName =
+    variant === 'danger' ? 'danger' : variant === 'quiet' ? 'secondaryLabel' : 'label';
 
   return (
     <PressableScale
@@ -71,25 +65,29 @@ export function Button({
       accessibilityLabel={title}
       accessibilityHint={accessibilityHint}
       accessibilityState={{ disabled: inactive, busy: loading }}
-      hitSlop={size === 'small' ? 6 : undefined}
+      hitSlop={size === 'small' ? 5 : undefined}
       style={[
         styles.base,
-        {
-          minHeight: metrics.minHeight,
-          paddingHorizontal: metrics.paddingHorizontal,
-          backgroundColor: background,
-        },
+        { minHeight: metrics.minHeight, paddingHorizontal: metrics.paddingHorizontal },
+        variant === 'glass' && { boxShadow: glass.shadow },
+        inactive && styles.inactive,
         style,
       ]}
     >
+      {variant === 'glass' ? <GlassFill borderRadius={radius.capsule} /> : null}
       {loading ? (
         <ActivityIndicator color={colors[labelColor]} />
       ) : (
         <View style={styles.content}>
           {icon ? (
-            <Icon name={icon} size={metrics.icon} color={labelColor} weight="semibold" />
+            <Icon name={icon} size={metrics.icon} color={labelColor} weight="medium" />
           ) : null}
-          <Text variant={metrics.variant} weight="600" color={labelColor} numberOfLines={1}>
+          <Text
+            variant={metrics.variant}
+            weight={variant === 'glass' ? '600' : '500'}
+            color={labelColor}
+            numberOfLines={1}
+          >
             {title}
           </Text>
         </View>
@@ -108,5 +106,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing.sm,
+  },
+  inactive: {
+    opacity: 0.4,
   },
 });
