@@ -1,0 +1,36 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Expo: Start",
+      "detail": "Dev server. Scan the QR code with your iPhone camera (Expo Go), or press w for the browser.",
+      "type": "npm",
+      "script": "start",
+      "isBackground": true,
+      "problemMatcher": [],
+      "group": { "kind": "build", "isDefault": true }
+    },
+    {
+      "label": "Expo: Start (tunnel)",
+      "detail": "Use when your phone and computer aren't on the same network.",
+      "type": "shell",
+      "command": "npx expo start --tunnel",
+      "isBackground": true,
+      "problemMatcher": []
+    },
+    {
+      "label": "Web preview",
+      "type": "npm",
+      "script": "web",
+      "isBackground": true,
+      "problemMatcher": []
+    },
+    {
+      "label": "Check (typecheck + lint + test)",
+      "type": "npm",
+      "script": "check",
+      "problemMatcher": ["$tsc"],
+      "group": { "kind": "test", "isDefault": true }
+    }
+  ]
+}
