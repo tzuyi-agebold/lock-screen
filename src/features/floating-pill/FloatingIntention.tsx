@@ -26,8 +26,24 @@ import { limitProgress, nextReminderAt, remainingMs, type Session } from '@/doma
 import { useNow } from '@/hooks/useNow';
 import { haptics } from '@/services/haptics';
 import { useSessionStore } from '@/state/sessionStore';
-import { Button, GlassSurface, Icon, ProgressBar, Text, type IconName } from '@/ui/components';
-import { durations, radius, spacing, springs, useTheme } from '@/ui/theme';
+import {
+  Button,
+  GlassSurface,
+  gradient,
+  Icon,
+  ProgressBar,
+  Text,
+  type IconName,
+} from '@/ui/components';
+import {
+  durations,
+  paletteForHour,
+  radius,
+  spacing,
+  springs,
+  useTheme,
+  type GlowPalette,
+} from '@/ui/theme';
 
 import { finishIntention } from '../session/sessionController';
 import {
@@ -40,6 +56,10 @@ import {
   type SnapArea,
   type SnapResult,
 } from './snap';
+
+/** A tiny version of the glow, marking the pill as your intention. */
+const glowOrb = (glow: GlowPalette) =>
+  `radial-gradient(circle at 40% 35%, ${glow.cream} 0%, ${glow.ember} 55%, ${glow.umber} 100%)`;
 
 /** Space kept clear for navigation chrome (top) and the primary actions (bottom). */
 const KEEP_CLEAR_TOP = 52;
@@ -309,7 +329,9 @@ function Pill({
             ]}
             onAccessibilityAction={onAccessibilityAction}
           >
-            <View style={[styles.dot, { backgroundColor: colors.label }]} />
+            <View
+              style={[styles.dot, gradient(glowOrb(paletteForHour(new Date(now).getHours())))]}
+            />
             <Text
               variant={expanded ? 'headline' : 'subheadline'}
               weight={expanded ? '600' : '500'}
@@ -413,10 +435,10 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.sm,
   },
   dot: {
-    width: 7,
-    height: 7,
-    borderRadius: 3.5,
-    marginHorizontal: spacing.xs,
+    width: 12,
+    height: 12,
+    borderRadius: 6,
+    marginHorizontal: spacing.xxs,
   },
   intention: {
     flexShrink: 1,

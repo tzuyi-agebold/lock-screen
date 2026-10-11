@@ -3,8 +3,15 @@ import { useColorScheme } from 'react-native';
 import { darkColors, lightColors, type ColorPalette } from './colors';
 import { glassMaterial, type GlassMaterial } from './materials';
 
-export { AMBIENT_PALETTES, paletteForHour, phaseForHour, withAlpha } from './ambient';
-export type { AmbientPalette, AmbientPhase } from './ambient';
+export {
+  GLOW_PALETTES,
+  ON_GLOW,
+  ON_GLOW_SECONDARY,
+  paletteForHour,
+  phaseForHour,
+  withAlpha,
+} from './ambient';
+export type { GlowPalette, GlowPhase } from './ambient';
 export { darkColors, lightColors, type ColorPalette } from './colors';
 export { glassMaterial, type GlassMaterial } from './materials';
 export { typography, type TextVariant } from './typography';

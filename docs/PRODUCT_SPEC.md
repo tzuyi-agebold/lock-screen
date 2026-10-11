@@ -39,11 +39,12 @@ intention screen.
 
 ### 2. Set an intention (the "unlock moment")
 
-The home screen sits on a slowly moving, blurred field of nature colors (see Design system).
-Only the essentials are on it:
+The intention is written on a large glowing slab (see Design system). Only the essentials are
+on the screen:
 
 - A glass settings button at the top right.
-- A large text field with the prompt **"What are you here to do?"**, plus a glass mic button.
+- The glow slab, holding a large text field with the prompt **"What are you here to do?"** and a
+  glass mic button.
   On-device dictation streams into the field; if it's unavailable, a one-line tip points to the
   keyboard mic.
 - **REMIND:** 5m / 10m / 15m (default 10, then the last choice).
@@ -96,18 +97,22 @@ Guidelines. Tokens live in `src/ui/theme`.
 
 - **Color:** black and white only, following the phone's appearance (black UI in dark mode,
   white in light mode). The accent is the label color itself; hierarchy comes from opacity
-  (100 / 56 / 34 / 18%) and hairlines. Color appears in exactly one place: the ambient
-  background. Red is reserved for the single destructive action.
-- **Ambient background (home, onboarding):** four soft radial light fields in nature colors that
-  drift, breathe and fade on long, unrelated periods (14–26 s), frosted by a blur, with fine
-  grain and a vignette for legibility. The palette follows the time of day: dawn (amber, clay
-  rose, sand, sky haze), day (pine, moss, lake teal, mist sage), dusk/night (deep teal, slate
-  blue, violet haze, sea glass). It holds still with Reduce Motion.
+  (100 / 56 / 34 / 18%) and hairlines. Color appears in exactly one place: the glow. Red is
+  reserved for the single destructive action.
+- **The glow (home, session card, onboarding, app icon):** a frosted slab lit from inside, in
+  the style of the aurō reference: a deep umber core at the top, burnt orange along the left
+  edge, a cream glow rising from the bottom and a cool blue-grey highlight in the top-right
+  corner. The four lights drift, breathe and fade on long, unrelated periods (13–27 s) behind
+  fine frosted grain, with a soft light rim and a warm halo spilling onto the black or white
+  around it. The balance shifts with the time of day while staying in that warm family: dawn is
+  lighter and creamier, day is the reference balance, dusk/night is deeper and redder. It holds
+  still with Reduce Motion. Text on the glow is warm white.
 - **Materials:** no solid buttons. Every control uses the same glass / brushed-metal material:
   a frosted blur, a soft vertical sheen gradient, a hairline rim and a thin highlight along the
   top edge (white-on-dark or soft-white-on-light).
 - **Type:** SF Pro with tight tracking. `display` (32) for the intention, a thin `numeral` (64)
-  for countdowns, `micro` uppercase labels (11) used sparingly; Dynamic Type sizes elsewhere.
+  for countdowns, `micro` uppercase monospace labels (SF Mono, 11) used sparingly, like an
+  instrument readout; Dynamic Type sizes elsewhere.
 - **Components:** glass and quiet capsule buttons, a glass-indicator choice group (segmented
   control), a monochrome toggle, glass icon buttons, hairline lists without icon tiles, and
   Liquid Glass (iOS 26+) for the floating pill.

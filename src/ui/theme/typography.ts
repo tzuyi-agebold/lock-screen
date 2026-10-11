@@ -5,7 +5,7 @@ import { Platform, type TextStyle } from 'react-native';
  * negative tracking), plus three expressive styles used sparingly:
  * - `display` for the intention itself,
  * - `numeral` for countdowns,
- * - `micro` for the few labels the interface needs.
+ * - `micro` for the few labels the interface needs, in monospace.
  *
  * Text scales with the user's Dynamic Type setting (`allowFontScaling`), and the system font
  * resolves to SF Pro on iOS.
@@ -21,6 +21,13 @@ export type TextVariant =
   | 'footnote'
   | 'caption'
   | 'micro';
+
+/** Monospace for the small labels, like an instrument readout. */
+const monoFamily = Platform.select({
+  ios: 'ui-monospace',
+  web: 'ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, monospace',
+  default: 'monospace',
+});
 
 const fontFamily = Platform.select({
   web: '-apple-system, BlinkMacSystemFont, "SF Pro Text", Inter, "Helvetica Neue", system-ui, sans-serif',
@@ -51,11 +58,11 @@ export const typography: Record<TextVariant, TextStyle> = {
   footnote: { fontFamily, fontSize: 13, lineHeight: 18, letterSpacing: -0.05, fontWeight: '400' },
   caption: { fontFamily, fontSize: 12, lineHeight: 16, letterSpacing: 0, fontWeight: '400' },
   micro: {
-    fontFamily,
+    fontFamily: monoFamily,
     fontSize: 11,
-    lineHeight: 13,
-    letterSpacing: 1.2,
-    fontWeight: '600',
+    lineHeight: 14,
+    letterSpacing: 0.8,
+    fontWeight: '500',
     textTransform: 'uppercase',
   },
 };

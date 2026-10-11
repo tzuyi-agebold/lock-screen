@@ -28,7 +28,7 @@ npx expo export --platform web   # catches bundling errors
   screens. New icons go in `Icon.tsx` (SF Symbol + Material Symbol pair).
 - Design language: black and white only (both appearances). No accent colors, no solid
   buttons: primary actions use `Button` (glass), secondary ones `variant="quiet"`. Color lives
-  only in `AmbientBackground` (palettes in `src/ui/theme/ambient.ts`).
+  only in `GlowSlab` (palettes in `src/ui/theme/ambient.ts`); text on it uses `ON_GLOW`.
 - Reanimated shared values: use `.get()` / `.set()` (React Compiler friendly), and respect
   `useReducedMotion()`.
 - Keep Expo Go compatibility for Phase 1: native modules not in Expo Go must be loaded with

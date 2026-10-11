@@ -19,14 +19,13 @@ import {
 import { useNow } from '@/hooks/useNow';
 import { reminders, type PermissionState } from '@/services/notifications';
 import { useSessionStore } from '@/state/sessionStore';
-import { Button, IconButton, Notice, ProgressBar, Text } from '@/ui/components';
-import { spacing, useTheme } from '@/ui/theme';
+import { Button, GlowSlab, IconButton, Notice, ProgressBar, Text } from '@/ui/components';
+import { ON_GLOW, ON_GLOW_SECONDARY, spacing, useTheme } from '@/ui/theme';
 
 import { finishIntention } from './sessionController';
 
 /**
- * The session: the intention and one countdown, nothing else. The screen goes quiet
- * (plain black or white) the moment you begin.
+ * The session: the intention on its glowing card and one countdown, nothing else.
  */
 export function ActiveSession({ session }: { session: Session }) {
   const router = useRouter();
@@ -84,9 +83,21 @@ export function ActiveSession({ session }: { session: Session }) {
         </View>
 
         <View style={styles.center}>
-          <Text variant="display" accessibilityRole="header" testID="active-intention">
-            {session.intention}
-          </Text>
+          <GlowSlab radius={32} style={styles.card}>
+            <View style={styles.cardContent}>
+              <Text variant="micro" style={styles.onGlowSecondary}>
+                Intention
+              </Text>
+              <Text
+                variant="display"
+                style={styles.onGlow}
+                accessibilityRole="header"
+                testID="active-intention"
+              >
+                {session.intention}
+              </Text>
+            </View>
+          </GlowSlab>
 
           <View style={styles.timer} accessible accessibilityLabel={spoken}>
             {primary !== null ? (
@@ -158,8 +169,24 @@ const styles = StyleSheet.create({
     gap: spacing.xxl,
     paddingVertical: spacing.xxxl,
   },
+  card: {
+    minHeight: 200,
+  },
+  // Content sits in the darker upper part of the glow, where white text reads best.
+  cardContent: {
+    padding: spacing.xxl,
+    paddingBottom: spacing.huge,
+    gap: spacing.md,
+  },
+  onGlow: {
+    color: ON_GLOW,
+  },
+  onGlowSecondary: {
+    color: ON_GLOW_SECONDARY,
+  },
   timer: {
     gap: spacing.xs,
+    paddingHorizontal: spacing.xs,
   },
   footer: {
     paddingHorizontal: spacing.xxl,

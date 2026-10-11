@@ -1,9 +1,8 @@
-export { AmbientBackground } from './AmbientBackground';
-export { BrandMark } from './BrandMark';
 export { Button, type ButtonProps, type ButtonSize, type ButtonVariant } from './Button';
 export { ChoiceGroup, type ChoiceOption } from './ChoiceGroup';
 export { GlassFill } from './GlassFill';
 export { GlassSurface } from './GlassSurface';
+export { GlowSlab } from './GlowSlab';
 export { gradient } from './gradient';
 export { Icon, type IconName } from './Icon';
 export { IconButton } from './IconButton';

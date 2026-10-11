@@ -23,8 +23,8 @@ import { reminders } from '@/services/notifications';
 import { useSpeechToText, type SpeechError } from '@/services/speech/useSpeechToText';
 import { useSessionStore } from '@/state/sessionStore';
 import { useSettingsStore } from '@/state/settingsStore';
-import { AmbientBackground, Button, ChoiceGroup, IconButton, Text } from '@/ui/components';
-import { durations, spacing, typography, useTheme } from '@/ui/theme';
+import { Button, ChoiceGroup, GlowSlab, IconButton, Text } from '@/ui/components';
+import { durations, ON_GLOW, ON_GLOW_SECONDARY, spacing, typography, useTheme } from '@/ui/theme';
 
 import { startIntention } from '../session/sessionController';
 import { LIMIT_CHOICES, REMINDER_CHOICES } from './choices';
@@ -41,8 +41,8 @@ const SPEECH_HINTS: Record<SpeechError, string> = {
 const CELEBRATION_MS = 6000;
 
 /**
- * The unlock moment: one intention, how often to be reminded, and an optional limit — on a
- * slowly shifting, blurred field of nature colors.
+ * The unlock moment: the intention is written on a softly glowing slab, with how often to be
+ * reminded and an optional limit below it.
  */
 export function IntentionComposer() {
   const router = useRouter();
@@ -120,8 +120,7 @@ export function IntentionComposer() {
   };
 
   return (
-    <View style={styles.fill}>
-      <AmbientBackground />
+    <View style={[styles.fill, { backgroundColor: colors.background }]}>
       <KeyboardAvoidingView
         style={styles.fill}
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
@@ -154,41 +153,39 @@ export function IntentionComposer() {
             />
           </View>
 
-          <View style={styles.center}>
-            <TextInput
-              ref={inputRef}
-              value={text}
-              onChangeText={(value) => {
-                setText(value);
-                speech.dismissError();
-              }}
-              placeholder="What are you here to do?"
-              placeholderTextColor={colors.tertiaryLabel}
-              selectionColor={colors.label}
-              cursorColor={colors.label}
-              style={[
-                styles.input,
-                { color: colors.label },
-                Platform.OS === 'web' && styles.webInput,
-              ]}
-              multiline
-              maxLength={INTENTION_MAX_LENGTH}
-              returnKeyType="done"
-              submitBehavior="blurAndSubmit"
-              autoCapitalize="sentences"
-              accessibilityLabel="Your intention"
-              accessibilityHint="Type or dictate the one thing you came to do."
-              testID="intention-input"
-            />
-            <View style={styles.inputFooter}>
-              <Text variant="footnote" color="tertiaryLabel" style={styles.fill}>
-                {speech.listening ? 'Listening…' : (hint ?? '')}
-              </Text>
-              <MicButton listening={speech.listening} onPress={onMicPress} />
+          <GlowSlab style={styles.slab} testID="glow-slab">
+            <View style={styles.slabContent}>
+              <TextInput
+                ref={inputRef}
+                value={text}
+                onChangeText={(value) => {
+                  setText(value);
+                  speech.dismissError();
+                }}
+                placeholder="What are you here to do?"
+                placeholderTextColor={ON_GLOW_SECONDARY}
+                selectionColor={ON_GLOW}
+                cursorColor={ON_GLOW}
+                style={[styles.input, Platform.OS === 'web' && styles.webInput]}
+                multiline
+                maxLength={INTENTION_MAX_LENGTH}
+                returnKeyType="done"
+                submitBehavior="blurAndSubmit"
+                autoCapitalize="sentences"
+                accessibilityLabel="Your intention"
+                accessibilityHint="Type or dictate the one thing you came to do."
+                testID="intention-input"
+              />
+              <View style={styles.inputFooter}>
+                <Text variant="footnote" style={[styles.fill, styles.onGlowSecondary]}>
+                  {speech.listening ? 'Listening…' : (hint ?? '')}
+                </Text>
+                <MicButton listening={speech.listening} onPress={onMicPress} />
+              </View>
             </View>
+          </GlowSlab>
 
-            <View style={[styles.hairline, { backgroundColor: colors.border }]} />
-
+          <View style={styles.choices}>
             <View style={styles.choice}>
               <Text variant="micro" color="tertiaryLabel">
                 Remind
@@ -252,17 +249,30 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     minHeight: 44,
   },
-  center: {
+  slab: {
     flex: 1,
-    justifyContent: 'center',
-    paddingVertical: spacing.xxxl,
+    minHeight: 320,
+    marginTop: spacing.md,
+  },
+  slabContent: {
+    flex: 1,
+    justifyContent: 'space-between',
+    padding: spacing.xxl,
     gap: spacing.lg,
   },
   input: {
     ...typography.display,
+    color: ON_GLOW,
     minHeight: 84,
     textAlignVertical: 'top',
     padding: 0,
+  },
+  onGlowSecondary: {
+    color: ON_GLOW_SECONDARY,
+  },
+  choices: {
+    gap: spacing.lg,
+    paddingTop: spacing.xxl,
   },
   // Browsers draw a focus box around text fields; iOS shows only the caret.
   webInput: {
@@ -272,10 +282,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing.md,
-  },
-  hairline: {
-    height: StyleSheet.hairlineWidth,
-    marginVertical: spacing.sm,
   },
   choice: {
     gap: spacing.sm,
