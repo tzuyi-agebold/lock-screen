@@ -17,13 +17,20 @@ iOS app (not a web wrapper), and the same code ships to TestFlight and the App S
 
 ### On the iOS Simulator (Mac with Xcode)
 
+Once per Mac: open Xcode, install the iOS platform (Xcode → Settings → Components), and install
+[Node.js 22 LTS](https://nodejs.org). Then, in Terminal:
+
 ```sh
+git clone https://github.com/tzuyi-agebold/lock-screen.git
+cd lock-screen     # run every command below from inside this folder
 npm install
 npm run ios        # compiles the app and opens it in the Simulator
 ```
 
-After the first build, `npm start` reloads changes instantly. No Mac? `npm run build:simulator`
-builds it in the cloud with EAS. Details in [docs/RELEASE.md](docs/RELEASE.md).
+The first build takes a few minutes. After that, `npm start` reloads changes instantly. In VS
+Code, open the `lock-screen` folder and use **Terminal → Run Task → "iOS Simulator: build and
+run"**. No Mac? `npm run build:simulator` builds it in the cloud with EAS. Details and
+troubleshooting in [docs/RELEASE.md](docs/RELEASE.md).
 
 ### Quick preview in Expo Go (any computer)
 

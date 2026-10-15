@@ -18,13 +18,30 @@ Pick one way.
 
 ### A. Build on your Mac (fastest once Xcode is installed)
 
+Once per Mac:
+
+1. Open Xcode once to finish its setup, then install the iOS platform in **Xcode → Settings →
+   Components**. This adds the Simulator.
+2. Install [Node.js 22 LTS](https://nodejs.org). Check with `node -v`.
+
+Then, in Terminal:
+
 ```sh
+git clone https://github.com/tzuyi-agebold/lock-screen.git
+cd lock-screen       # every command below runs from inside this folder
 npm install
 npm run ios          # = npx expo run:ios — compiles the app and opens it in the Simulator
 ```
 
 The first build takes a few minutes. After that, `npm start` reloads code changes instantly.
 To pick a specific simulator: `npx expo run:ios --device "iPhone 17 Pro"`.
+
+| If you see                                          | Do this                                                                                     |
+| --------------------------------------------------- | ------------------------------------------------------------------------------------------- |
+| `ENOENT … no such file or directory … package.json` | You're not in the project folder. Run `cd ~/lock-screen` (`ls` should list `package.json`). |
+| `node: command not found`                           | Install Node.js 22 LTS, then open a new Terminal window.                                    |
+| No simulators / "Unable to find a destination"      | Install the iOS platform in Xcode → Settings → Components.                                  |
+| `xcrun: error: unable to find utility`              | `sudo xcode-select -s /Applications/Xcode.app`                                              |
 
 ### B. Build in the cloud, install on the Simulator
 
