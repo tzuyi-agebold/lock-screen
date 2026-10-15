@@ -16,23 +16,12 @@ Runs in **Expo Go** and in the browser, so it can be previewed from VS Code with
 Each feature plugs into an existing seam, so screens don't change:
 `src/services/liveActivity`, `src/services/focusShield`, and `sessionController.ts`.
 
-### 0. Switch from Expo Go to a development build
+### 0. Development builds ✅
 
-```sh
-npx expo install expo-dev-client
-```
-
-Add a development profile to `eas.json` (`"development": { "developmentClient": true, "distribution": "internal" }`), then:
-
-```sh
-npx eas-cli@latest build --profile development --platform ios   # cloud build, no Mac needed
-# or, on a Mac with Xcode:  npx expo run:ios --device
-```
-
-After installing `expo-dev-client`, `npm start` targets the development build by default.
-Press `s` in the terminal to switch back to Expo Go.
-
-This also turns on in-app voice input (`expo-speech-recognition` is already configured).
+Done: `expo-dev-client` is installed and `eas.json` has `development` (Simulator),
+`development-device`, `preview` and `production` profiles. `npm run ios` runs the app on the
+Simulator, and the in-app voice input (`expo-speech-recognition`) works in these builds. See
+[RELEASE.md](RELEASE.md).
 
 ### 1. Live Activity + Dynamic Island: the system-wide floating module
 
